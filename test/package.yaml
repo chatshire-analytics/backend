@@ -1,0 +1,174 @@
+- name: Empty Project Layout
+  reference: https://go.dev/
+  url: https://github.com/denizgursoy/go-touch-projects/raw/main/test/package/empty.tar.gz
+  language: go
+  questions:
+    - direction: Do you want Dockerfile?
+      canSkip: true
+      choices:
+        - choice: Yes
+          files:
+            - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/Dockerfile
+              pathFromRoot: Dockerfile
+          values:
+            isDocker: true
+    - direction: Do you want Kubernetes Deployment files?
+      canSkip: true
+      choices:
+        - choice: Yes
+          files:
+            - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/k8s-deployment.yaml
+              pathFromRoot: app-deployment.yaml
+          values:
+            isKubernetes: true
+    - direction: Do you want makefile?
+      canSkip: true
+      choices:
+        - choice: Yes
+          files:
+            - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/Makefile
+              pathFromRoot: Makefile
+- name: Default Project Layout
+  reference: https://github.com/golang-standards/project-layout
+  url: https://github.com/denizgursoy/go-touch-projects/raw/main/test/package/default.tar.gz
+  language: go
+  questions:
+    - direction: Do you want Dockerfile?
+      canSkip: true
+      choices:
+        - choice: Yes
+          dependencies:
+            - github.com/labstack/echo/v4@v4.9.1
+            - github.com/spf13/viper
+          files:
+            - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/Dockerfile
+              pathFromRoot: Dockerfile
+            - content: |
+                1.xxxx
+                2.sdsds
+
+
+              pathFromRoot: test.txt
+          values:
+            isDocker: true
+    - direction: Do you want Kubernetes Deployment files?
+      canSkip: true
+      choices:
+        - choice: Yes
+          files:
+            - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/k8s-deployment.yaml
+              pathFromRoot: app-deployment.yaml
+          values:
+            isKubernetes: true
+    - direction: Do you want makefile?
+      canSkip: true
+      choices:
+        - choice: Yes
+          files:
+            - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/DefaultMakefile
+              pathFromRoot: Makefile
+- name: Delimiter test project
+  reference: https://go.dev/
+  url: https://github.com/denizgursoy/go-touch-projects/raw/main/test/package/delimeter.tar.gz
+  language: go
+  delimiters: "<< >>"
+  questions:
+    - direction: Do you want Dockerfile?
+      canSkip: true
+      choices:
+        - choice: Yes
+          files:
+            - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/Dockerfile
+              pathFromRoot: Dockerfile
+          values:
+            isDocker: true
+    - direction: Do you want Kubernetes Deployment files?
+      canSkip: true
+      choices:
+        - choice: Yes
+          files:
+            - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/k8s-deployment.yaml
+              pathFromRoot: app-deployment.yaml
+          values:
+            isKubernetes: true
+    - direction: Do you want makefile?
+      canSkip: true
+      choices:
+        - choice: Yes
+          files:
+            - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/Makefile
+              pathFromRoot: Makefile
+- name: gitcheckout main
+  reference: https://go.dev/
+  url: https://github.com/denizgursoy/go-touch-projects.git
+  language: go
+- name: gitcheckout branch
+  reference: https://go.dev/
+  url: https://github.com/denizgursoy/go-touch-projects.git
+  branch: branch-test
+  language: go
+- name: multiple select
+  reference: https://go.dev/
+  url: https://github.com/denizgursoy/go-touch-projects.git
+  branch: branch-test
+  language: go
+  questions:
+    - direction: Select choices?
+      canSelectMultiple: true
+      choices:
+        - choice: dockerfile
+          files:
+            - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/Dockerfile
+              pathFromRoot: Dockerfile
+          values:
+            isDocker: true
+        - choice: makefike
+          files:
+            - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/Makefile
+              pathFromRoot: Makefile
+        - choice: deployment
+          files:
+          - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/k8s-deployment.yaml
+            pathFromRoot: app-deployment.yaml
+          values:
+            isKubernetes: true
+- name: Project with no url
+  questions:
+    - direction: Do you want Dockerfile?
+      canSkip: true
+      choices:
+        - choice: Yes
+          files:
+            - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/Dockerfile
+              pathFromRoot: Dockerfile
+          values:
+            isDocker: true
+    - direction: Do you want Kubernetes Deployment files?
+      canSkip: true
+      choices:
+        - choice: Yes
+          files:
+            - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/k8s-deployment.yaml
+              pathFromRoot: app-deployment.yaml
+          values:
+            isKubernetes: true
+    - direction: Do you want makefile?
+      canSkip: true
+      choices:
+        - choice: Yes
+          files:
+            - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/Makefile
+              pathFromRoot: Makefile
+- name: Project with files and dependencies
+  files:
+    - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/Dockerfile
+      pathFromRoot: Dockerfile
+    - content: |
+        
+        <no value>
+      pathFromRoot: values.txt
+  dependencies:
+    - name: "dependency1"
+    - name: "dependency2"
+  values:
+    port: 8090

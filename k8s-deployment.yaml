@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mentat-backend-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mentat-backend
+  template:
+    metadata:
+      labels:
+        app: mentat-backend
+    spec:
+      containers:
+        - name: mentat-backend
+          image: mentat-backend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8090
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mentat-backend-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: mentat-backend
+  ports:
+    - port: 8091
+      targetPort: 8090
