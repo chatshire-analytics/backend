@@ -1,7 +1,7 @@
 package main
 
 import (
-	"mentat-backend/gateway-service/cmd/setup"
+	"mentat-backend/cmd/setup"
 )
 
 func main() {
