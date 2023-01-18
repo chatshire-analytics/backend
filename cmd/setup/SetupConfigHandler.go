@@ -5,12 +5,11 @@ import (
 	"mentat-backend/internal/config"
 )
 
-func SetConfigHandler(e *echo.Echo, cfg *config.GlobalConfig) *echo.Echo {
+func ConfigHandler(e *echo.Echo, cfg *config.GlobalConfig) {
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
-			ctx.Set("config", cfg)
+			ctx.Set(config.GlobalConfigKey, cfg)
 			return next(ctx)
 		}
 	})
-	return e
 }
