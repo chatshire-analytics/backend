@@ -1,36 +1,72 @@
 package setup
 
 import (
+	"errors"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"log"
+	"net/http"
 	"os"
 )
 
-func SetupTelegramBot() error {
-	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
+func SetupTelegramBot(token string, webhookURL string) error {
+	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		return err
 	}
 
 	bot.Debug = true
 
-	// The offset is set to 0 which means that the bot will start receiving updates from the most recent update.
-	updateConfig := tgbotapi.NewUpdate(0)
-	updateConfig.Timeout = 30
+	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	updates := bot.GetUpdatesChan(updateConfig)
-
-	for update := range updates {
-		if update.Message == nil {
-			continue
-		}
-
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-		msg.ReplyToMessageID = update.Message.MessageID
-
-		if _, err := bot.Send(msg); err != nil {
-			return err
-		}
+	certFile := os.Getenv("CERT_PATH")
+	file, err := os.ReadFile(certFile)
+	if err != nil {
+		return err
 	}
 
-	return nil
+	wh, err := tgbotapi.NewWebhookWithCert(webhookURL, tgbotapi.FileBytes{Name: "telegram-cert.pem", Bytes: file})
+	if err != nil {
+		log.Printf("Error creating webhook: %v", err)
+		return err
+	}
+
+	_, err = bot.Request(wh)
+	if err != nil {
+		log.Printf("Error setting webhook: %v", err)
+		return err
+	}
+
+	info, err := bot.GetWebhookInfo()
+	if err != nil {
+		log.Printf("Error getting webhook info: %v", err)
+		return err
+	}
+
+	if info.LastErrorDate != 0 {
+		log.Printf("Telegram callback failed: %s", info.LastErrorMessage)
+		return errors.New("telegram callback failed")
+	}
+
+	updates := bot.ListenForWebhook("/" + bot.Token)
+	// set channel for error
+	errChan := make(chan error, 1)
+	go func() {
+		err := http.ListenAndServeTLS("0.0.0.0:8443", "cert.pem", "key.pem", nil)
+		if err != nil {
+			log.Printf("Error starting webhook: %v", err)
+			errChan <- err
+		}
+		close(errChan)
+	}()
+
+	for update := range updates {
+		log.Printf("%+v\n", update)
+	}
+
+	select {
+	case err := <-errChan:
+		return err
+	default:
+		return nil
+	}
 }
