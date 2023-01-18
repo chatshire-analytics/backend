@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"mentat-backend/internal/config"
 	tgpkg "mentat-backend/pkg/api/telegram"
+	setup "mentat-backend/pkg/errors"
 	"net/http"
 )
 
@@ -20,6 +21,11 @@ func WebhookHealth(c echo.Context, body *tgpkg.WebhookReqBody) error {
 	// Create the JSON body from the struct
 	reqBytes, err := json.Marshal(reqBody)
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"component": "telegram",
+			"ChatId":    chatId,
+			"Text":      reqBody.Text,
+		}).WithError(err).Error(logrus.ErrorLevel, "could not marshal request body")
 		return err
 	}
 
@@ -28,13 +34,29 @@ func WebhookHealth(c echo.Context, body *tgpkg.WebhookReqBody) error {
 	apiKey := cfg.TelegramEnv.API_KEY
 
 	url := fmt.Sprintf("https://api.telegram.org/bot%s:%s/sendMessage", apiId, apiKey)
-	fmt.Println("url: ", url)
 	res, err := http.Post(url, "application/json", bytes.NewBuffer(reqBytes))
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"component": "telegram",
+			"ChatId":    chatId,
+			"Text":      reqBody.Text,
+			"URL":       url,
+			"API_ID":    apiId,
+			"API_KEY":   apiKey,
+		}).WithError(err).Error(logrus.ErrorLevel, "could not send message")
 		return err
 	}
 	if res.StatusCode != http.StatusOK {
-		return errors.New("unexpected status" + res.Status)
+		logrus.WithFields(logrus.Fields{
+			"component": "telegram",
+			"ChatId":    chatId,
+			"Text":      reqBody.Text,
+			"URL":       url,
+			"API_ID":    apiId,
+			"API_KEY":   apiKey,
+			"Status":    res.Status,
+		}).WithError(err).Error(logrus.ErrorLevel, "unexpected status"+res.Status)
+		return setup.TelegramError(res.Status)
 	}
 
 	return nil
