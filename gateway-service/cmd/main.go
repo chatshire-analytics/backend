@@ -9,9 +9,4 @@ func main() {
 	if err != nil {
 		return
 	}
-
-	err = setup.SetupTelegramBot()
-	if err != nil {
-		return
-	}
 }
