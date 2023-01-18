@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
-	"mentat-backend/gateway-service/pkg/api/telegram"
+	telegram2 "mentat-backend/pkg/api/telegram"
 	"net/http"
 	"os"
 )
 
 func WebhookHandler(c echo.Context) error {
-	body := &telegram.WebhookReqBody{}
+	body := &telegram2.WebhookReqBody{}
 	if err := c.Bind(body); err != nil {
 		return c.String(http.StatusBadRequest, "could not decode request body: "+err.Error())
 	}
@@ -28,7 +28,7 @@ func WebhookHandler(c echo.Context) error {
 }
 
 func sayPolo(chatID int64) error {
-	reqBody := &telegram.WebhookResBody{
+	reqBody := &telegram2.WebhookResBody{
 		ChatID: chatID,
 		Text:   "Bitcoin to the moon!!",
 	}
