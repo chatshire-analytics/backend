@@ -18,7 +18,7 @@
         - choice: Yes
           files:
             - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/k8s-deployment.yaml
-              pathFromRoot: app-deployment.yaml
+              pathFromRoot: api-deployment.yaml
           values:
             isKubernetes: true
     - direction: Do you want makefile?
@@ -57,7 +57,7 @@
         - choice: Yes
           files:
             - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/k8s-deployment.yaml
-              pathFromRoot: app-deployment.yaml
+              pathFromRoot: api-deployment.yaml
           values:
             isKubernetes: true
     - direction: Do you want makefile?
@@ -88,7 +88,7 @@
         - choice: Yes
           files:
             - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/k8s-deployment.yaml
-              pathFromRoot: app-deployment.yaml
+              pathFromRoot: api-deployment.yaml
           values:
             isKubernetes: true
     - direction: Do you want makefile?
@@ -129,7 +129,7 @@
         - choice: deployment
           files:
           - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/k8s-deployment.yaml
-            pathFromRoot: app-deployment.yaml
+            pathFromRoot: api-deployment.yaml
           values:
             isKubernetes: true
 - name: Project with no url
@@ -149,7 +149,7 @@
         - choice: Yes
           files:
             - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/k8s-deployment.yaml
-              pathFromRoot: app-deployment.yaml
+              pathFromRoot: api-deployment.yaml
           values:
             isKubernetes: true
     - direction: Do you want makefile?
