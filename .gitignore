@@ -4,3 +4,4 @@ chatgpt-service/config.yaml
 .build
 gateway-service/log/
 chatgpt-service/log/
+/log
