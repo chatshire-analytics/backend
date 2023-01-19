@@ -1,4 +1,4 @@
-package client
+package engine
 
 import "fmt"
 
@@ -19,6 +19,7 @@ const (
 
 type EmbeddingEngine string
 
+// TODO: add more engines released on the late 2022
 const (
 	TextSimilarityAda001      = "text-similarity-ada-001"
 	TextSimilarityBabbage001  = "text-similarity-babbage-001"
@@ -40,11 +41,11 @@ const (
 )
 
 const (
-	defaultBaseURL        = "https://api.openai.com/v1"
-	defaultUserAgent      = "go-gpt3"
-	defaultTimeoutSeconds = 30
+	DefaultBaseURL        = "https://api.openai.com/v1"
+	DefaultUserAgent      = "mentat" // go-gpt3
+	DefaultTimeoutSeconds = 30
 )
 
 func getEngineURL(engine string) string {
-	return fmt.Sprintf("%s/engines/%s/completions", defaultBaseURL, engine)
+	return fmt.Sprintf("%s/engines/%s/completions", DefaultBaseURL, engine)
 }
