@@ -1,11 +1,12 @@
 package client
 
 import (
+	"chatgpt-service/internal/pkg/engine"
 	"net/http"
 	"time"
 )
 
-type GPTClientType struct {
+type GPTClient struct {
 	baseURL       string
 	apiKey        string
 	userAgent     string
@@ -16,15 +17,15 @@ type GPTClientType struct {
 
 func NewGPTClient(apiKey string, options ...ClientOption) GPTClientInterface {
 	httpClient := &http.Client{
-		Timeout: time.Duration(defaultTimeoutSeconds * time.Second),
+		Timeout: time.Duration(engine.DefaultTimeoutSeconds * time.Second),
 	}
 
-	c := &GPTClientType{
-		userAgent:     defaultUserAgent,
+	c := &GPTClient{
+		userAgent:     engine.DefaultUserAgent,
 		apiKey:        apiKey,
-		baseURL:       defaultBaseURL,
+		baseURL:       engine.DefaultBaseURL,
 		httpClient:    httpClient,
-		defaultEngine: DefaultEngine,
+		defaultEngine: engine.DefaultEngine,
 		idOrg:         "",
 	}
 	for _, o := range options {
