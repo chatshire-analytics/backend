@@ -1,1 +1,4 @@
 .idea
+config.yaml
+.build
+log/

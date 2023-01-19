@@ -19,7 +19,7 @@
         - choice: Yes
           files:
             - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/k8s-deployment.yaml
-              pathFromRoot: app-deployment.yaml
+              pathFromRoot: api-deployment.yaml
           values:
             isKubernetes: true
     - direction: Do you want Makefile?
@@ -50,7 +50,7 @@
         - choice: Yes
           files:
             - url: https://raw.githubusercontent.com/denizgursoy/go-touch-projects/main/k8s-deployment.yaml
-              pathFromRoot: /deployments/app-deployment.yaml
+              pathFromRoot: /deployments/api-deployment.yaml
           values:
             isKubernetes: true
     - direction: Do you want Makefile?
