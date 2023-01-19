@@ -15,6 +15,8 @@ const (
 	CurieEngine          = "curie"
 	DavinciEngine        = "davinci"
 	DefaultEngine        = DavinciEngine
+	// DefaultUserName TODO: load UserName to environment variable
+	DefaultUserName = "mentat-analysis"
 )
 
 type EmbeddingEngine string
