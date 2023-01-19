@@ -1,42 +1,39 @@
-package engine
+package client
 
 import (
+	"chatgpt-service/pkg/client"
 	"context"
 )
 
-// A Client is an API client to communicate with the OpenAI gpt-3 APIs
-type ClientInterface interface {
-	// Engines lists the currently available engines, and provides basic information about each
-	// option such as the owner and availability.
-	Engines(ctx context.Context) (*EnginesResponse, error)
+// GPTClientInterface is an API client to communicate with the OpenAI gpt-3 APIs
+// https://github.com/PullRequestInc/go-gpt3/blob/283ab6b3e423c5567217fbe4e49950614ddd04c9/gpt3.go
+type GPTClientInterface interface {
+	// ListModels Lists the currently available models
+	// and provides basic information about each one such as the owner and availability.
+	// curl https://api.openai.com/v1/models -H 'Authorization: Bearer YOUR_API_KEY'
+	ListModels(ctx context.Context) (*client.ListModelsResponse, error)
 
-	// Engine retrieves an engine instance, providing basic information about the engine such
+	// RetrieveModel retrieves a client instance, providing basic information about the client such
 	// as the owner and availability.
-	Engine(ctx context.Context, engine string) (*EngineObject, error)
+	RetrieveModel(ctx context.Context, engine string) (*client.ModelObject, error)
 
-	// Completion creates a completion with the default engine. This is the main endpoint of the API
+	// Completion creates a completion with the default client. This is the main endpoint of the API
 	// which auto-completes based on the given prompt.
-	Completion(ctx context.Context, request CompletionRequest) (*CompletionResponse, error)
+	Completion(ctx context.Context, request client.CompletionRequest) (*client.CompletionResponse, error)
 
-	// CompletionStream creates a completion with the default engine and streams the results through
+	// CompletionStream creates a completion with the default client and streams the results through
 	// multiple calls to onData.
-	CompletionStream(ctx context.Context, request CompletionRequest, onData func(*CompletionResponse)) error
+	CompletionStream(ctx context.Context, request client.CompletionRequest, onData func(response *client.CompletionResponse)) error
 
-	// CompletionWithEngine is the same as Completion except allows overriding the default engine on the client
-	CompletionWithEngine(ctx context.Context, engine string, request CompletionRequest) (*CompletionResponse, error)
+	// CompletionWithEngine is the same as Completion except allows overriding the default client on the client
+	CompletionWithEngine(ctx context.Context, engine string, request client.CompletionRequest) (*client.CompletionResponse, error)
 
-	// CompletionStreamWithEngine is the same as CompletionStream except allows overriding the default engine on the client
-	CompletionStreamWithEngine(ctx context.Context, engine string, request CompletionRequest, onData func(*CompletionResponse)) error
+	// CompletionStreamWithEngine is the same as CompletionStream except allows overriding the default client on the client
+	CompletionStreamWithEngine(ctx context.Context, engine string, request client.CompletionRequest, onData func(response *client.CompletionResponse)) error
 
-	// Given a prompt and an instruction, the model will return an edited version of the prompt.
-	Edits(ctx context.Context, request EditsRequest) (*EditsResponse, error)
-
-	// Search performs a semantic search over a list of documents with the default engine.
-	Search(ctx context.Context, request SearchRequest) (*SearchResponse, error)
-
-	// SearchWithEngine performs a semantic search over a list of documents with the specified engine.
-	SearchWithEngine(ctx context.Context, engine string, request SearchRequest) (*SearchResponse, error)
+	// Given a prompt and an instruction, the client will return an edited version of the prompt.
+	Edits(ctx context.Context, request client.EditsRequest) (*client.EditsResponse, error)
 
 	// Returns an embedding using the provided request.
-	Embeddings(ctx context.Context, request EmbeddingsRequest) (*EmbeddingsResponse, error)
+	Embeddings(ctx context.Context, request client.EmbeddingsRequest) (*client.EmbeddingsResponse, error)
 }
