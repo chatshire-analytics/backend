@@ -3,7 +3,10 @@ package client
 import (
 	"chatgpt-service/pkg/client"
 	"context"
+	"github.com/labstack/echo/v4"
 )
+
+type EchoHttpMethodFunc func(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
 
 // OpenAIClientInterface is an API client to communicate with the OpenAI gpt-3 APIs
 // https://github.com/PullRequestInc/go-gpt3/blob/283ab6b3e423c5567217fbe4e49950614ddd04c9/gpt3.go
