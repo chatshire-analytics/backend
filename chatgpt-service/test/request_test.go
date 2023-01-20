@@ -55,3 +55,26 @@ func TestListModels(t *testing.T) {
 		t.Errorf("expected at least one model but got %v", len(listModelsResponse.Data))
 	}
 }
+
+func TestRetrieveModel(t *testing.T) {
+	// given
+	err, req := setupTest(t)
+	req.SetParamNames("model_id")
+	req.SetParamValues("text-davinci-003")
+
+	// when
+	err = api.RetrieveModel(req)
+
+	// then
+	if err != nil {
+		t.Errorf("could not retrieve model: %v", err)
+	}
+	body := req.Response().Writer.(*httptest.ResponseRecorder).Body
+	var retrievedModelObject client.ModelObject
+	if err = json.Unmarshal(body.Bytes(), &retrievedModelObject); err != nil {
+		t.Errorf("could not unmarshal response: %v", err)
+	}
+	if retrievedModelObject.ID != "text-davinci-003" {
+		t.Errorf("expected model with id text-davinci-003 but got %v", retrievedModelObject.ID)
+	}
+}
