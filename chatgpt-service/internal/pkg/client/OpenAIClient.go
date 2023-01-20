@@ -2,7 +2,6 @@ package client
 
 import (
 	"bytes"
-	"chatgpt-service/internal/pkg/engine"
 	"chatgpt-service/pkg/client"
 	"context"
 	"encoding/json"
@@ -10,16 +9,15 @@ import (
 	"github.com/pkg/errors"
 	"io"
 	"net/http"
-	"time"
 )
 
 type OpenAIClient struct {
-	baseURL       string
-	apiKey        string
-	userAgent     string
-	httpClient    *http.Client
-	defaultEngine string
-	idOrg         string
+	BaseURL       string
+	ApiKey        string
+	UserAgent     string
+	HttpClient    *http.Client
+	DefaultEngine string
+	IdOrg         string
 }
 
 func (gc *OpenAIClient) JSONBodyReader(body interface{}) (io.Reader, error) {
@@ -38,22 +36,22 @@ func (gc *OpenAIClient) NewRequest(ctx context.Context, method string, path stri
 	if err != nil {
 		return nil, err
 	}
-	url := gc.baseURL + path // link to openai.com
+	url := gc.BaseURL + path // link to openai.com
 	req, err := http.NewRequestWithContext(ctx, method, url, br)
 	if err != nil {
 		return nil, err
 	}
-	if len(gc.idOrg) > 0 {
-		req.Header.Set("user", gc.idOrg)
+	if len(gc.IdOrg) > 0 {
+		req.Header.Set("user", gc.IdOrg)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", gc.apiKey))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", gc.ApiKey))
 	return req, nil
 }
 
-// TODO: implement above referrencing https://github.com/PullRequestInc/go-gpt3/blob/main/gpt3.go
 func (gc *OpenAIClient) ListModels(ctx context.Context) (*client.ListModelsResponse, error) {
-	//TODO implement me
+	//req, err := gc.NewRequest(ctx, http.MethodGet, client.ModelEndPoint, nil)
+	// parse http.Request to ListModelsResponse
 	panic("implement me")
 }
 
@@ -90,26 +88,4 @@ func (G OpenAIClient) Edits(ctx context.Context, request client.EditsRequest) (*
 func (G OpenAIClient) Embeddings(ctx context.Context, request client.EmbeddingsRequest) (*client.EmbeddingsResponse, error) {
 	//TODO implement me
 	panic("implement me")
-}
-
-func NewGPTClient(apiKey string, options ...ClientOption) GPTClientInterface {
-	httpClient := &http.Client{
-		Timeout: time.Duration(engine.DefaultTimeoutSeconds * time.Second),
-	}
-
-	c := &OpenAIClient{
-		userAgent:     engine.DefaultUserAgent,
-		apiKey:        apiKey,
-		baseURL:       engine.DefaultBaseURL,
-		httpClient:    httpClient,
-		defaultEngine: engine.DefaultEngine,
-		idOrg:         engine.DefaultUserName,
-	}
-	for _, o := range options {
-		err := o(c)
-		if err != nil {
-			return nil
-		}
-	}
-	return c
 }

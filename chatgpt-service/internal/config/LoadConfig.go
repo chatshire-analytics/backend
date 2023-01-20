@@ -21,7 +21,7 @@ func LoadConfig(filePath string, env string) (*GlobalConfig, error) {
 		log.Printf("could not unmarshal config file: %v", err)
 		return nil, fmt.Errorf("error unmarshaling config file: %v", err)
 	}
-	cfg.TelegramEnv.ParseEnv(k, env)
+	cfg.OpenAIEnv.ParseEnv(k, env)
 
 	return &cfg, nil
 }

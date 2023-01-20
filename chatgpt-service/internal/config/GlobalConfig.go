@@ -1,11 +1,11 @@
 package config
 
 const GlobalConfigKey = "globalconfig"
-const DefaultConfigPath = "./gateway-service/config.yaml"
+const DefaultConfigPath = "./config.yaml"
 
 type GlobalConfig struct {
 	Environment Environment `koanf:"Environment" envDefault:"dev"`
-	TelegramEnv TelegramEnv
+	OpenAIEnv   OpenAIENV
 }
 
 func (g *GlobalConfig) IsDev() bool {

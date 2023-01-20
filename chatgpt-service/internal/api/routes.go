@@ -3,7 +3,6 @@ package api
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
-	"mentat-backend/internal/api/telegram"
 	"time"
 )
 
@@ -33,5 +32,4 @@ func HttpRequestLogHandler(next echo.HandlerFunc) echo.HandlerFunc {
 func SetupRoutes(e *echo.Echo) {
 	e.Use(HttpRequestLogHandler)
 	e.GET("/health", HealthCheck)
-	e.POST("/telegram/webhook", telegram.WebhookHandler)
 }

@@ -5,9 +5,9 @@ import (
 	"context"
 )
 
-// GPTClientInterface is an API client to communicate with the OpenAI gpt-3 APIs
+// OpenAIClientInterface is an API client to communicate with the OpenAI gpt-3 APIs
 // https://github.com/PullRequestInc/go-gpt3/blob/283ab6b3e423c5567217fbe4e49950614ddd04c9/gpt3.go
-type GPTClientInterface interface {
+type OpenAIClientInterface interface {
 	// ListModels Lists the currently available models
 	// and provides basic information about each one such as the owner and availability.
 	// curl https://api.openai.com/v1/models -H 'Authorization: Bearer YOUR_API_KEY'
