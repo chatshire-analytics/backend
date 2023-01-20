@@ -114,8 +114,19 @@ func (oc *OpenAIClient) ListModels(ctx context.Context) (*client.ListModelsRespo
 }
 
 func (oc OpenAIClient) RetrieveModel(ctx context.Context, engine string) (*client.ModelObject, error) {
-	//TODO implement me
-	panic("implement me")
+	req, err := oc.NewRequestBuilder(ctx, http.MethodGet, client.ModelEndPoint+"/"+engine, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := oc.ExecuteRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	output := new(client.ModelObject)
+	if err := oc.getResponseObject(resp, output); err != nil {
+		return nil, err
+	}
+	return output, nil
 }
 
 func (oc OpenAIClient) Completion(ctx context.Context, request client.CompletionRequest) (*client.CompletionResponse, error) {

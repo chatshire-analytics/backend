@@ -18,3 +18,16 @@ func ListModels(c echo.Context) error {
 	}
 	return c.JSON(200, res)
 }
+
+func RetrieveModel(c echo.Context) error {
+	ocInterface := c.Get(client.OpenAIClientKey)
+	oc, ok := ocInterface.(*client.OpenAIClient)
+	if !ok {
+		return errors.New("could not convert to OpenAI client")
+	}
+	res, err := oc.RetrieveModel(c.Request().Context(), c.Param("model_id"))
+	if err != nil {
+		return err
+	}
+	return c.JSON(200, res)
+}

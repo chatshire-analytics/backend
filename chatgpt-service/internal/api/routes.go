@@ -34,4 +34,5 @@ func SetupRoutes(e *echo.Echo) {
 	e.Use(HttpRequestLogHandler)
 	e.GET("/health", HealthCheck)
 	e.GET(client.GetAllModels, ListModels)
+	e.GET(client.RetrieveModels, RetrieveModel)
 }
