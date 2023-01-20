@@ -2,6 +2,7 @@ package config
 
 const GlobalConfigKey = "globalconfig"
 const DefaultConfigPath = "./config.yaml"
+const TestConfigPath = "../config.yaml"
 
 type GlobalConfig struct {
 	Environment Environment `koanf:"Environment" envDefault:"dev"`
