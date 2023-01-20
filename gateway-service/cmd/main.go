@@ -36,8 +36,9 @@ func main() {
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"component": "main",
-			}).WithError(err).Error("API server running failed")
-			return
+			}).WithError(err).Error("Gateway API server running failed")
+			fmt.Println("Gateway API server running failed")
+			os.Exit(1)
 		}
 
 		err = e.Start(":" + fmt.Sprint(port))
@@ -45,6 +46,8 @@ func main() {
 			logrus.WithFields(logrus.Fields{
 				"component": "main",
 			}).WithError(err).Error("API server running failed")
+			fmt.Println("Gateway API server running failed")
+			os.Exit(1)
 		}
 
 		fmt.Println("Server is now running at the port :" + fmt.Sprint(port))
