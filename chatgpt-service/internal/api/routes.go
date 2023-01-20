@@ -1,6 +1,7 @@
 package api
 
 import (
+	"chatgpt-service/pkg/client"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 	"time"
@@ -32,4 +33,5 @@ func HttpRequestLogHandler(next echo.HandlerFunc) echo.HandlerFunc {
 func SetupRoutes(e *echo.Echo) {
 	e.Use(HttpRequestLogHandler)
 	e.GET("/health", HealthCheck)
+	e.GET(client.GetAllModels, ListModels)
 }
