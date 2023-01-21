@@ -9,8 +9,11 @@ import (
 
 func InitializeEcho(cfg *config.GlobalConfig, oc *client.OpenAIClientInterface) (error, *echo.Echo) {
 	e := echo.New()
-	api.SetupRoutes(e)
 	ConfigHandler(e, *cfg, oc)
+	err := api.SetupRoutes(e)
+	if err != nil {
+		return err, nil
+	}
 
 	return nil, e
 }

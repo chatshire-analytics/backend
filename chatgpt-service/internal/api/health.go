@@ -5,6 +5,8 @@ import (
 	"net/http"
 )
 
+const HealthEndpoint = "/health"
+
 type Health struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`

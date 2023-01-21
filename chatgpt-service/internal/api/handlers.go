@@ -7,69 +7,52 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TODO: refactor the code using a constructor function
-//type Handler struct {
-//	oc *client.OpenAIClient
-//}
-//
-//func NewHandler(oc *client.OpenAIClient) *Handler {
-//	return &Handler{
-//		oc: oc,
-//	}
-//}
+type Handler struct {
+	oc   *client.OpenAIClient
+	ectx *echo.Context
+}
 
-func ListModels(c echo.Context) error {
+func NewHandler(c echo.Context) (*Handler, error) {
 	ocInterface := c.Get(client.OpenAIClientKey)
 	oc, ok := ocInterface.(*client.OpenAIClient)
 	if !ok {
-		return errors.New("could not convert to OpenAI client")
+		return nil, errors.New("could not convert to OpenAI client")
 	}
-	res, err := oc.ListModels(c.Request().Context())
+	return &Handler{
+		oc:   oc,
+		ectx: &c,
+	}, nil
+}
+
+func (hd *Handler) ListModels(_ echo.Context) error {
+	res, err := hd.oc.ListModels((*hd.ectx).Request().Context())
 	if err != nil {
 		return err
 	}
-	return c.JSON(200, res)
+	return (*hd.ectx).JSON(200, res)
 }
 
-func RetrieveModel(c echo.Context) error {
-	ocInterface := c.Get(client.OpenAIClientKey)
-	oc, ok := ocInterface.(*client.OpenAIClient)
-	if !ok {
-		return errors.New("could not convert to OpenAI client")
-	}
-	res, err := oc.RetrieveModel(c.Request().Context(), c.Param("model_id"))
+func (hd *Handler) RetrieveModel(_ echo.Context) error {
+	res, err := hd.oc.RetrieveModel((*hd.ectx).Request().Context(), (*hd.ectx).Param(cif.ModelIdParamKey))
 	if err != nil {
 		return err
 	}
-	return c.JSON(200, res)
+	return (*hd.ectx).JSON(200, res)
 }
 
-func CreateCompletion(c echo.Context) error {
-	ocInterface := c.Get(client.OpenAIClientKey)
-	oc, ok := ocInterface.(*client.OpenAIClient)
-	if !ok {
-		return errors.New("could not convert to OpenAI client")
-	}
+func (hd *Handler) CreateCompletion(_ echo.Context) error {
 	var cr cif.CompletionRequest
-	if err := c.Bind(&cr); err != nil {
+	if err := (*hd.ectx).Bind(&cr); err != nil {
 		return err
 	}
-	res, err := oc.CreateCompletion(c.Request().Context(), cr)
+	res, err := hd.oc.CreateCompletion((*hd.ectx).Request().Context(), cr)
 	if err != nil {
 		return err
 	}
-	return c.JSON(200, res)
+	return (*hd.ectx).JSON(200, res)
 }
 
-func CreateCompletionStream(c echo.Context) error {
-	ocInterface := c.Get(client.OpenAIClientKey)
-	oc, ok := ocInterface.(*client.OpenAIClient)
-	if !ok {
-		err := errors.New("could not convert to OpenAI client")
-		c.Error(err)
-		return err
-	}
-
+func (hd *Handler) CreateCompletionStream(c echo.Context) error {
 	var cr cif.CompletionRequest
 	if err := c.Bind(&cr); err != nil {
 		c.Error(err)
@@ -85,7 +68,7 @@ func CreateCompletionStream(c echo.Context) error {
 	respCh := make(chan cif.CompletionResponse)
 	// A goroutine is started to run the CompletionStream function and send the received responses to the channel.
 	go func() {
-		err := oc.CompletionStream(c.Request().Context(), cr, func(resp *cif.CompletionResponse) {
+		err := hd.oc.CompletionStream(c.Request().Context(), cr, func(resp *cif.CompletionResponse) {
 			respCh <- *resp
 		})
 		if err != nil {

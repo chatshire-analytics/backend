@@ -30,10 +30,16 @@ func HttpRequestLogHandler(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func SetupRoutes(e *echo.Echo) {
+func SetupRoutes(e *echo.Echo) error {
+	hd, err := NewHandler(e.AcquireContext())
+	if err != nil {
+		return err
+	}
 	e.Use(HttpRequestLogHandler)
-	e.GET("/health", HealthCheck)
-	e.GET(client.GetAllModels, ListModels)
-	e.GET(client.RetrieveModels, RetrieveModel)
-	e.POST(client.CreateCompletionEndpoint, CreateCompletion)
+	e.GET(HealthEndpoint, HealthCheck)
+	e.GET(client.GetAllModels, hd.ListModels)
+	e.GET(client.RetrieveModels, hd.RetrieveModel)
+	e.POST(client.CreateCompletionEndpoint, hd.CreateCompletion)
+
+	return nil
 }
