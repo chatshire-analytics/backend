@@ -86,6 +86,7 @@ curl https://api.openai.com/v1/models \
 const ModelEndPoint = "/models"
 const GetAllModels = ModelEndPoint + "/all"
 const RetrieveModels = ModelEndPoint + "/retrieve"
+const ModelIdParamKey = "model_id"
 
 type PermissionInModelObject struct {
 	ID                 string      `json:"id"`
