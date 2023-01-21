@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bufio"
 	"bytes"
 	"chatgpt-service/pkg/client"
 	cerror "chatgpt-service/pkg/errors"
@@ -9,9 +10,11 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 const OpenAIClientKey = "OpenAIClient"
@@ -135,12 +138,10 @@ func (oc OpenAIClient) CreateCompletion(ctx context.Context, request client.Comp
 }
 
 func (oc OpenAIClient) CompletionStream(ctx context.Context, request client.CompletionRequest, onData func(response *client.CompletionResponse)) error {
-	//TODO implement me
-	panic("implement me")
+	return oc.CompletionStreamWithEngine(ctx, oc.DefaultEngine, request, onData)
 }
 
 func (oc OpenAIClient) CreateCompletionWithEngine(ctx context.Context, engine string, request client.CompletionRequest) (*client.CompletionResponse, error) {
-	request.Stream = false
 	req, err := oc.NewRequestBuilder(ctx, http.MethodPost, client.OpenAICompletionEndPoint, request)
 	if err != nil {
 		return nil, err
@@ -157,8 +158,72 @@ func (oc OpenAIClient) CreateCompletionWithEngine(ctx context.Context, engine st
 }
 
 func (oc OpenAIClient) CompletionStreamWithEngine(ctx context.Context, engine string, request client.CompletionRequest, onData func(response *client.CompletionResponse)) error {
-	//TODO implement me
-	panic("implement me")
+	var dataPrefix = string([]byte("data: "))
+	var doneSequence = string([]byte("[DONE]"))
+
+	if !*request.Stream {
+		return errors.New("stream option is false")
+	}
+
+	req, err := oc.NewRequestBuilder(ctx, http.MethodPost, client.OpenAICompletionEndPoint, request)
+	if err != nil {
+		return err
+	}
+
+	resp, err := oc.ExecuteRequest(req)
+	if err != nil {
+		return err
+	}
+
+	// Create a new channel to handle errors
+	errCh := make(chan error)
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err,
+			}).Error("failed to close response body")
+			// Send the error to the channel
+			errCh <- err
+		}
+		// Close the channel
+		close(errCh)
+	}(resp.Body)
+
+	// Create a new scanner to read the response body
+	scanner := bufio.NewScanner(resp.Body)
+
+	for scanner.Scan() {
+		// Moved the select statement inside the for loop to handle errors and context cancellation at every iteration.
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case err := <-errCh:
+			return err
+		default:
+			line := scanner.Text()
+			if !strings.HasPrefix(line, dataPrefix) {
+				continue
+			}
+			line = strings.TrimPrefix(line, dataPrefix)
+			if strings.HasPrefix(line, doneSequence) {
+				break
+			}
+			output := new(client.CompletionResponse)
+			if err := json.Unmarshal([]byte(line), output); err != nil {
+				return errors.New("invalid json stream data: " + err.Error())
+			}
+			onData(output)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("failed to scan response body")
+	}
+
+	return nil
 }
 
 func (oc OpenAIClient) Edits(ctx context.Context, request client.EditsRequest) (*client.EditsResponse, error) {

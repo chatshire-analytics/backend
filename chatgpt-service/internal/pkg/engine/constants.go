@@ -14,7 +14,7 @@ const (
 	BabbageEngine        = "babbage"
 	CurieEngine          = "curie"
 	DavinciEngine        = "davinci"
-	DefaultEngine        = DavinciEngine
+	DefaultEngine        = TextDavinci003Engine
 	// DefaultUserName TODO: load UserName to environment variable
 	DefaultUserName = "mentat-analysis"
 )

@@ -18,7 +18,7 @@ type CompletionRequest struct {
 	Temperature *float32 `json:"temperature,omitempty"`
 	// Whether to stream back results or not. Don't set this value in the request yourself
 	// as it will be overriden depending on if you use CompletionStream or CreateCompletion methods.
-	Stream bool `json:"stream,omitempty"`
+	Stream *bool `json:"stream,omitempty"`
 	// Alternative to temperature for nucleus sampling
 	TopP *float32 `json:"top_p,omitempty"`
 	// How many choice to create for each prompt
@@ -36,12 +36,13 @@ type CompletionRequest struct {
 	FrequencyPenalty float32 `json:"frequency_penalty"`
 }
 
-func NewCompletionRequest(prompt string, maxTokens int, model *string) *CompletionRequest {
+func NewCompletionRequest(prompt string, maxTokens int, model *string, stream *bool) *CompletionRequest {
 	cr := &CompletionRequest{
 		Model:            new(string),
 		Prompt:           prompt,
 		MaxTokens:        new(int),
 		Temperature:      new(float32),
+		Stream:           new(bool),
 		TopP:             new(float32),
 		N:                new(int),
 		LogProbs:         new(int),
@@ -55,6 +56,11 @@ func NewCompletionRequest(prompt string, maxTokens int, model *string) *Completi
 		cr.Model = model
 	} else {
 		*cr.Model = engine.TextDavinci003Engine
+	}
+	if stream != nil {
+		cr.Stream = stream
+	} else {
+		*cr.Stream = false
 	}
 	*cr.MaxTokens = maxTokens
 	*cr.Temperature = 0.0
