@@ -20,7 +20,7 @@ import (
 	"testing"
 )
 
-func setupTest(t *testing.T, method string, endpoint string, bodyRaw *[]byte) (error, echo.Context) {
+func setupTest(t *testing.T, method string, endpoint string, bodyRaw *[]byte) (error, echo.Context, *api.Handler) {
 	cfg, err := config.LoadConfig(config.TestConfigPath, "dev")
 	if err != nil {
 		t.Errorf("could not load config: %v", err)
@@ -38,12 +38,16 @@ func setupTest(t *testing.T, method string, endpoint string, bodyRaw *[]byte) (e
 	}
 	reqRaw := httptest.NewRequest(method, endpoint, body)
 	reqRaw.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req := e.NewContext(reqRaw, httptest.NewRecorder())
-	req.Set(cpkg.OpenAIClientKey, oc)
-	return nil, req
+	ectx := e.NewContext(reqRaw, httptest.NewRecorder())
+	ectx.Set(cpkg.OpenAIClientKey, oc)
+	hd, err := api.NewHandler(ectx)
+	if err != nil {
+		t.Errorf("could not create handler: %v", err)
+	}
+	return nil, ectx, hd
 }
 
-func setupTestSSE(t *testing.T, method string, endpoint string, bodyRaw *[]byte) (error, echo.Context) {
+func setupTestSSE(t *testing.T, method string, endpoint string, bodyRaw *[]byte) (error, echo.Context, *api.Handler) {
 	cfg, err := config.LoadConfig(config.TestConfigPath, "dev")
 	if err != nil {
 		t.Errorf("could not load config: %v", err)
@@ -64,52 +68,58 @@ func setupTestSSE(t *testing.T, method string, endpoint string, bodyRaw *[]byte)
 	reqRaw.Header.Set(echo.HeaderAccept, "text/event-stream")
 	reqRaw.Header.Set(echo.HeaderConnection, "keep-alive")
 	reqRaw.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req := e.NewContext(reqRaw, httptest.NewRecorder())
-	req.Set(cpkg.OpenAIClientKey, oc)
-	return nil, req
+	ectx := e.NewContext(reqRaw, httptest.NewRecorder())
+	ectx.Set(cpkg.OpenAIClientKey, oc)
+	hd, err := api.NewHandler(ectx)
+	if err != nil {
+		t.Errorf("could not create handler: %v", err)
+	}
+	return nil, ectx, hd
 }
 
 func TestListModels(t *testing.T) {
 	// given
-	err, req := setupTest(t, http.MethodGet, client.GetAllModels, nil)
+	err, ectx, hd := setupTest(t, http.MethodGet, client.GetAllModels, nil)
+	if err != nil {
+		t.Fatalf("could not create handler: %v", err)
+	}
 
 	// when
-	err = api.ListModels(req)
+	err = hd.ListModels(ectx)
 
 	// then
 	if err != nil {
-		t.Errorf("could not list models: %v", err)
+		t.Fatalf("could not list models: %v", err)
 	}
-	res := req.Response()
+	res := ectx.Response()
 	if res.Status != http.StatusOK {
-		t.Errorf("expected status OK but got %v", res.Status)
+		t.Fatalf("expected status OK but got %v", res.Status)
 	}
 	body := res.Writer.(*httptest.ResponseRecorder).Body
 	var listModelsResponse client.ListModelsResponse
 	if err = json.Unmarshal(body.Bytes(), &listModelsResponse); err != nil {
-		t.Errorf("could not unmarshal response: %v", err)
+		t.Fatalf("could not unmarshal response: %v", err)
 	}
 	if len(listModelsResponse.Data) == 0 {
-		t.Errorf("expected at least one model but got %v", len(listModelsResponse.Data))
+		t.Fatalf("expected at least one model but got %v", len(listModelsResponse.Data))
 	}
 }
 
 func TestRetrieveModel(t *testing.T) {
 	// given
-	err, req := setupTest(t, http.MethodGet, client.RetrieveModels, nil)
-	MODEL_ID_KEY := "model_id"
+	err, ectx, hd := setupTest(t, http.MethodGet, client.RetrieveModels, nil)
 	EXAMPLE_MODEL_ID := engine.TextDavinci003Engine
-	req.SetParamNames(MODEL_ID_KEY)
-	req.SetParamValues(EXAMPLE_MODEL_ID)
+	ectx.SetParamNames(client.ModelIdParamKey)
+	ectx.SetParamValues(EXAMPLE_MODEL_ID)
 
 	// when
-	err = api.RetrieveModel(req)
+	err = hd.RetrieveModel(ectx)
 
 	// then
 	if err != nil {
 		t.Errorf("could not retrieve model: %v", err)
 	}
-	res := req.Response()
+	res := ectx.Response()
 	if res.Status != http.StatusOK {
 		t.Errorf("expected status OK but got %v", res.Status)
 	}
@@ -130,19 +140,19 @@ func TestCreateCompletion(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not marshal request body: %v", err)
 	}
-	err, req := setupTest(t, http.MethodPost, client.CreateCompletionEndpoint, &bodyRaw)
+	err, ectx, hd := setupTest(t, http.MethodPost, client.CreateCompletionEndpoint, &bodyRaw)
 	if err != nil {
 		t.Errorf("could not setup test: %v", err)
 	}
 
 	// when
-	err = api.CreateCompletion(req)
+	err = hd.CreateCompletion(ectx)
 
 	// then
 	if err != nil {
 		t.Errorf("could not create completion: %v", err)
 	}
-	res := req.Response()
+	res := ectx.Response()
 	if res.Status != http.StatusOK {
 		t.Errorf("expected status OK but got %v", res.Status)
 	}
@@ -165,19 +175,19 @@ func TestCreateCompletionStreamTrue(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not marshal request body: %v", err)
 	}
-	err, req := setupTestSSE(t, http.MethodPost, client.CreateCompletionEndpoint, &bodyRaw)
+	err, ectx, hd := setupTestSSE(t, http.MethodPost, client.CreateCompletionEndpoint, &bodyRaw)
 	if err != nil {
 		t.Errorf("could not setup test: %v", err)
 	}
 
 	// when
-	err = api.CreateCompletionStream(req)
+	err = hd.CreateCompletionStream(ectx)
 
 	// then
 	if err != nil {
 		t.Errorf("could not create completion: %v", err)
 	}
-	res := req.Response()
+	res := ectx.Response()
 	if res.Status != http.StatusOK {
 		t.Errorf("expected status OK but got %v", res.Status)
 	}
