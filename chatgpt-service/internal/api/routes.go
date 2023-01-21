@@ -35,4 +35,5 @@ func SetupRoutes(e *echo.Echo) {
 	e.GET("/health", HealthCheck)
 	e.GET(client.GetAllModels, ListModels)
 	e.GET(client.RetrieveModels, RetrieveModel)
+	e.POST(client.CreateCompletionEndpoint, CreateCompletion)
 }
