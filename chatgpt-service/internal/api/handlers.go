@@ -80,7 +80,7 @@ func (hd *Handler) CreateCompletionStream(_ echo.Context) error {
 	// In the for-loop, the code continuously reads from the response channel
 	// and sends updates to the client via SSE by writing to the response and flushing it
 	// Continuously read from the response channel and send updates to the client via SSE
-	_, err := (*hd.ectx).Response().Write([]byte("data: \\start\n"))
+	_, err := (*hd.ectx).Response().Write([]byte("event: start"))
 	if err != nil {
 		(*hd.ectx).Error(err)
 		return err
@@ -90,7 +90,7 @@ func (hd *Handler) CreateCompletionStream(_ echo.Context) error {
 		case resp, ok := <-respCh:
 			if !ok {
 				// Channel closed, done streaming
-				_, err := (*hd.ectx).Response().Write([]byte("data: \\end "))
+				_, err := (*hd.ectx).Response().Write([]byte("event: end"))
 				if err != nil {
 					return err
 				}
@@ -108,7 +108,7 @@ func (hd *Handler) CreateCompletionStream(_ echo.Context) error {
 			}
 		case <-(*hd.ectx).Request().Context().Done():
 			// Request cancelled, done streaming
-			write, err := (*hd.ectx).Response().Write([]byte("data: \\end"))
+			write, err := (*hd.ectx).Response().Write([]byte("event: end"))
 			if err != nil {
 				return err
 			}

@@ -16,7 +16,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 )
 
@@ -199,7 +198,7 @@ func TestCreateCompletionStreamTrue(t *testing.T) {
 	for {
 		line, err := reader.ReadBytes('\n')
 		if err != nil {
-			if strings.HasSuffix(string(line), "\\end ") {
+			if err == io.EOF {
 				break
 			}
 		}
