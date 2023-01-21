@@ -22,14 +22,14 @@ type OpenAIClientInterface interface {
 
 	// Completion creates a completion with the default client. This is the main endpoint of the API
 	// which auto-completes based on the given prompt.
-	Completion(ctx context.Context, request client.CompletionRequest) (*client.CompletionResponse, error)
+	CreateCompletion(ctx context.Context, request client.CompletionRequest) (*client.CompletionResponse, error)
 
 	// CompletionStream creates a completion with the default client and streams the results through
 	// multiple calls to onData.
 	CompletionStream(ctx context.Context, request client.CompletionRequest, onData func(response *client.CompletionResponse)) error
 
 	// CompletionWithEngine is the same as Completion except allows overriding the default client on the client
-	CompletionWithEngine(ctx context.Context, engine string, request client.CompletionRequest) (*client.CompletionResponse, error)
+	CreateCompletionWithEngine(ctx context.Context, engine string, request client.CompletionRequest) (*client.CompletionResponse, error)
 
 	// CompletionStreamWithEngine is the same as CompletionStream except allows overriding the default client on the client
 	CompletionStreamWithEngine(ctx context.Context, engine string, request client.CompletionRequest, onData func(response *client.CompletionResponse)) error

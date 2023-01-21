@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
@@ -48,7 +49,7 @@ func (oc *OpenAIClient) NewRequestBuilder(ctx context.Context, method string, pa
 	if len(oc.IdOrg) > 0 {
 		req.Header.Set("user", oc.IdOrg)
 	}
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", oc.ApiKey))
 	return req, nil
 }
@@ -129,9 +130,8 @@ func (oc OpenAIClient) RetrieveModel(ctx context.Context, engine string) (*clien
 	return output, nil
 }
 
-func (oc OpenAIClient) Completion(ctx context.Context, request client.CompletionRequest) (*client.CompletionResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (oc OpenAIClient) CreateCompletion(ctx context.Context, request client.CompletionRequest) (*client.CompletionResponse, error) {
+	return oc.CreateCompletionWithEngine(ctx, oc.DefaultEngine, request)
 }
 
 func (oc OpenAIClient) CompletionStream(ctx context.Context, request client.CompletionRequest, onData func(response *client.CompletionResponse)) error {
@@ -139,9 +139,21 @@ func (oc OpenAIClient) CompletionStream(ctx context.Context, request client.Comp
 	panic("implement me")
 }
 
-func (oc OpenAIClient) CompletionWithEngine(ctx context.Context, engine string, request client.CompletionRequest) (*client.CompletionResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (oc OpenAIClient) CreateCompletionWithEngine(ctx context.Context, engine string, request client.CompletionRequest) (*client.CompletionResponse, error) {
+	request.Stream = false
+	req, err := oc.NewRequestBuilder(ctx, http.MethodPost, client.OpenAICompletionEndPoint, request)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := oc.ExecuteRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	output := new(client.CompletionResponse)
+	if err := oc.getResponseObject(resp, output); err != nil {
+		return nil, err
+	}
+	return output, nil
 }
 
 func (oc OpenAIClient) CompletionStreamWithEngine(ctx context.Context, engine string, request client.CompletionRequest, onData func(response *client.CompletionResponse)) error {
