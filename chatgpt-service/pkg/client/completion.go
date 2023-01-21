@@ -1,15 +1,24 @@
 package client
 
+import "chatgpt-service/internal/pkg/engine"
+
+const OpenAICompletionEndPoint = "/completions"
+const CreateCompletionEndpoint = OpenAICompletionEndPoint + "/create"
+
 // CompletionRequest is a request for the completions API
 // https://github.com/PullRequestInc/go-gpt3/blob/283ab6b3e423c5567217fbe4e49950614ddd04c9/models.go#L36
 type CompletionRequest struct {
+	Model *string `json:"model"`
 	// A list of string prompts to use.
 	// TODO there are other prompt types here for using token integers that we could add support for.
-	Prompt []string `json:"prompt"`
+	Prompt string `json:"prompt"`
 	// How many tokens to complete up to. Max of 512
 	MaxTokens *int `json:"max_tokens,omitempty"`
 	// Sampling temperature to use
 	Temperature *float32 `json:"temperature,omitempty"`
+	// Whether to stream back results or not. Don't set this value in the request yourself
+	// as it will be overriden depending on if you use CompletionStream or CreateCompletion methods.
+	Stream bool `json:"stream,omitempty"`
 	// Alternative to temperature for nucleus sampling
 	TopP *float32 `json:"top_p,omitempty"`
 	// How many choice to create for each prompt
@@ -17,17 +26,43 @@ type CompletionRequest struct {
 	// Include the probabilities of most likely tokens
 	LogProbs *int `json:"logprobs"`
 	// Echo back the prompt in addition to the completion
-	Echo bool `json:"echo"`
+	Echo bool    `json:"echo"`
+	User *string `json:"user"`
 	// Up to 4 sequences where the API will stop generating tokens. Response will not contain the stop sequence.
 	Stop []string `json:"stop,omitempty"`
 	// PresencePenalty number between 0 and 1 that penalizes tokens that have already appeared in the text so far.
 	PresencePenalty float32 `json:"presence_penalty"`
 	// FrequencyPenalty number between 0 and 1 that penalizes tokens on existing frequency in the text so far.
 	FrequencyPenalty float32 `json:"frequency_penalty"`
+}
 
-	// Whether to stream back results or not. Don't set this value in the request yourself
-	// as it will be overriden depending on if you use CompletionStream or Completion methods.
-	Stream bool `json:"stream,omitempty"`
+func NewCompletionRequest(prompt string, maxTokens int, model *string) *CompletionRequest {
+	cr := &CompletionRequest{
+		Model:            new(string),
+		Prompt:           prompt,
+		MaxTokens:        new(int),
+		Temperature:      new(float32),
+		TopP:             new(float32),
+		N:                new(int),
+		LogProbs:         new(int),
+		Echo:             false,
+		Stop:             nil,
+		PresencePenalty:  0.0,
+		FrequencyPenalty: 0.0,
+		User:             new(string),
+	}
+	if model != nil {
+		cr.Model = model
+	} else {
+		*cr.Model = engine.TextDavinci003Engine
+	}
+	*cr.MaxTokens = maxTokens
+	*cr.Temperature = 0.0
+	*cr.TopP = 1.0
+	*cr.N = 1
+	*cr.LogProbs = 0
+	*cr.User = engine.DefaultUserName
+	return cr
 }
 
 // LogprobResult represents logprob result of Choice
