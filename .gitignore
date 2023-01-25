@@ -1,4 +1,7 @@
 .idea
-config.yaml
+gateway-service/config.yaml
+chatgpt-service/config.yaml
 .build
-log/
+gateway-service/log/
+chatgpt-service/log/
+/log
