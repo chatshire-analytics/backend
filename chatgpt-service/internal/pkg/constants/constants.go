@@ -1,4 +1,4 @@
-package engine
+package constants
 
 import "fmt"
 
@@ -45,7 +45,7 @@ const (
 const (
 	DefaultBaseURL        = "https://api.openai.com/v1"
 	DefaultUserAgent      = "mentat" // go-gpt3
-	DefaultTimeoutSeconds = 30
+	DefaultTimeoutSeconds = 300
 )
 
 func getEngineURL(engine string) string {
