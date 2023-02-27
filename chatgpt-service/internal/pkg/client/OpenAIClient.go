@@ -22,6 +22,7 @@ const OpenAIClientKey = "OpenAIClient"
 type OpenAIClient struct {
 	BaseURL       string
 	ApiKey        string
+	AccessToken   string
 	UserAgent     string
 	HttpClient    *http.Client
 	DefaultEngine string
@@ -234,4 +235,11 @@ func (oc OpenAIClient) Edits(ctx context.Context, request client.EditsRequest) (
 func (oc OpenAIClient) Embeddings(ctx context.Context, request client.EmbeddingsRequest) (*client.EmbeddingsResponse, error) {
 	//TODO implement me
 	panic("implement me")
+}
+
+func (oc OpenAIClient) GetAccessToken() (string, error) {
+	if oc.AccessToken == "" {
+		return "", errors.New("access token is empty")
+	}
+	return oc.AccessToken, nil
 }

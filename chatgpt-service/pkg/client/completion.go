@@ -1,6 +1,8 @@
 package client
 
-import "chatgpt-service/internal/pkg/engine"
+import (
+	"chatgpt-service/internal/pkg/constants"
+)
 
 const OpenAICompletionEndPoint = "/completions"
 const CreateCompletionEndpoint = OpenAICompletionEndPoint + "/create"
@@ -55,7 +57,7 @@ func NewCompletionRequest(prompt string, maxTokens int, model *string, stream *b
 	if model != nil {
 		cr.Model = model
 	} else {
-		*cr.Model = engine.TextDavinci003Engine
+		*cr.Model = constants.TextDavinci003Engine
 	}
 	if stream != nil {
 		cr.Stream = stream
@@ -67,7 +69,7 @@ func NewCompletionRequest(prompt string, maxTokens int, model *string, stream *b
 	*cr.TopP = 1.0
 	*cr.N = 1
 	*cr.LogProbs = 0
-	*cr.User = engine.DefaultUserName
+	*cr.User = constants.DefaultUserName
 	return cr
 }
 
