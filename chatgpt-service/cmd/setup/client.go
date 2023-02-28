@@ -3,22 +3,22 @@ package setup
 import (
 	"chatgpt-service/internal/config"
 	"chatgpt-service/internal/pkg/client"
-	"chatgpt-service/internal/pkg/engine"
+	"chatgpt-service/internal/pkg/constants"
 	"net/http"
 	"time"
 )
 
 func NewOpenAIClient(cfg *config.GlobalConfig, options ...client.ClientOption) (client.OpenAIClientInterface, error) {
 	httpClient := &http.Client{
-		Timeout: time.Duration(engine.DefaultTimeoutSeconds * time.Second),
+		Timeout: time.Duration(constants.DefaultTimeoutSeconds * time.Second),
 	}
 	cl := &client.OpenAIClient{
-		UserAgent:     engine.DefaultUserAgent,
+		UserAgent:     constants.DefaultUserAgent,
 		ApiKey:        cfg.OpenAIEnv.API_KEY,
-		BaseURL:       engine.DefaultBaseURL,
+		BaseURL:       constants.DefaultBaseURL,
 		HttpClient:    httpClient,
-		DefaultEngine: engine.DefaultEngine,
-		IdOrg:         engine.DefaultUserName,
+		DefaultEngine: constants.DefaultEngine,
+		IdOrg:         constants.DefaultUserName,
 	}
 	for _, clientOption := range options {
 		err := clientOption(cl)
