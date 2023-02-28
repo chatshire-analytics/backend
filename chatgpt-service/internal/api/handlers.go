@@ -157,3 +157,15 @@ func (hd *Handler) CreateFlipsideQuery(_ echo.Context) error {
 	}
 	return (*hd.ectx).JSON(200, res)
 }
+
+func (hd *Handler) GetFlipsideQueryResult(ctx echo.Context) error {
+	token := ctx.Param("token")
+	gr := cif.GetFlipsideQueryResultRequest{
+		Token: token,
+	}
+	result, err := hd.fc.GetFlipsideQueryResult((*hd.ectx).Request().Context(), gr)
+	if err != nil {
+		return err
+	}
+	return (*hd.ectx).JSON(200, result)
+}

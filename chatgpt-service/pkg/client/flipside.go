@@ -25,12 +25,17 @@ type CommonFlipsideQueryErrorResponse struct {
 	} `json:"errors"`
 }
 
-type GetFlipsideQuerySuccessResult struct {
-	Results      [][]string `json:"results"`
-	ColumnLabels []string   `json:"columnLabels"`
-	ColumnTypes  []string   `json:"columnTypes"`
-	Status       string     `json:"status"`
-	Message      string     `json:"message"`
-	StartedAt    time.Time  `json:"startedAt"`
-	EndedAt      time.Time  `json:"endedAt"`
+type GetFlipsideQueryResultSuccessResponse struct {
+	Results      [][]interface{} `json:"results"`
+	ColumnLabels []string        `json:"columnLabels"`
+	ColumnTypes  []string        `json:"columnTypes"`
+	StartedAt    time.Time       `json:"startedAt"`
+	EndedAt      time.Time       `json:"endedAt"`
+	PageNumber   int             `json:"pageNumber"`
+	PageSize     int             `json:"pageSize"`
+	Status       string          `json:"status"`
+}
+
+type GetFlipsideQueryResultRequest struct {
+	Token string `json:"token"`
 }
