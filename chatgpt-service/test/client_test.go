@@ -28,6 +28,10 @@ func setupTest(t *testing.T, method string, endpoint string, bodyRaw *[]byte) (e
 	if err != nil {
 		t.Errorf("could not create openai client: %v", err)
 	}
+	fc, err := setup.NewFlipsideClient(cfg)
+	if err != nil {
+		t.Errorf("could not create flipside client: %v", err)
+	}
 	e := echo.New()
 	var body io.Reader
 	if bodyRaw == nil {
@@ -39,7 +43,7 @@ func setupTest(t *testing.T, method string, endpoint string, bodyRaw *[]byte) (e
 	reqRaw.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	ectx := e.NewContext(reqRaw, httptest.NewRecorder())
 	ectx.Set(cpkg.OpenAIClientKey, oc)
-	hd, err := api.NewHandler(ectx, *cfg, oc)
+	hd, err := api.NewHandler(ectx, *cfg, oc, fc)
 	if err != nil {
 		t.Errorf("could not create handler: %v", err)
 	}
@@ -55,6 +59,10 @@ func setupTestSSE(t *testing.T, method string, endpoint string, bodyRaw *[]byte)
 	if err != nil {
 		t.Errorf("could not create openai client: %v", err)
 	}
+	fc, err := setup.NewFlipsideClient(cfg)
+	if err != nil {
+		t.Errorf("could not create flipside client: %v", err)
+	}
 	e := echo.New()
 	var body io.Reader
 	if bodyRaw == nil {
@@ -69,7 +77,7 @@ func setupTestSSE(t *testing.T, method string, endpoint string, bodyRaw *[]byte)
 	reqRaw.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	ectx := e.NewContext(reqRaw, httptest.NewRecorder())
 	ectx.Set(cpkg.OpenAIClientKey, oc)
-	hd, err := api.NewHandler(ectx, *cfg, oc)
+	hd, err := api.NewHandler(ectx, *cfg, oc, fc)
 	if err != nil {
 		t.Errorf("could not create handler: %v", err)
 	}
@@ -206,4 +214,151 @@ func TestCreateCompletionStreamTrue(t *testing.T) {
 	}
 	fmt.Println("rawString", rawString)
 	assert.NotEmpty(t, rawString)
+}
+
+func TestFlipsideCryptoCreateAQuery(t *testing.T) {
+	// given
+	bodyTest := &client.CreateFlipsideQueryRequest{
+		Sql:        "select TX_ID from ethereum.TRANSACTIONS limit 10",
+		TtlMinutes: 15,
+		Cache:      true,
+		Params: struct {
+			AdditionalProp1 string `json:"additionalProp1"`
+			AdditionalProp2 string `json:"additionalProp2"`
+			AdditionalProp3 string `json:"additionalProp3"`
+		}{
+			AdditionalProp1: "string",
+			AdditionalProp2: "string",
+			AdditionalProp3: "string",
+		},
+	}
+
+	bodyRaw, err := json.Marshal(bodyTest)
+	if err != nil {
+		t.Errorf("could not marshal request body: %v", err)
+	}
+
+	err, ectx, hd := setupTest(t, http.MethodGet, client.GetAllModels, &bodyRaw)
+	if err != nil {
+		t.Fatalf("could not create handler: %v", err)
+	}
+
+	// when
+	err = hd.CreateFlipsideQuery(ectx)
+
+	// then
+	if err != nil {
+		t.Fatalf("could not create query: %v", err)
+	}
+	res := ectx.Response()
+	if res.Status != http.StatusOK {
+		t.Fatalf("expected status OK but got %v", res.Status)
+	}
+	bodyVerify := res.Writer.(*httptest.ResponseRecorder).Body
+	var queryResponse client.CreateFlipsideQuerySuccessResponse
+	if err = json.Unmarshal(bodyVerify.Bytes(), &queryResponse); err != nil {
+		t.Fatalf("could not unmarshal response: %v", err)
+	}
+
+	fmt.Println("queryResponse", queryResponse)
+}
+
+// // NOTE: PLEASE CONFIGURE PYTHON PATH BEFORE RUNNING THE TEST!
+//
+//	// python -c "import sys; print(sys.prefix)"
+//	// PATH=/Users/sigridjin.eth/Documents/github/backend/venv/bin:$PATH
+//
+//	//cmd2 := exec.Command("python", "-c", "import sys; print(sys.prefix)")
+//	//byte, err := cmd2.Output()
+//	//byte = bytes.TrimSpace(byte)
+//	//fmt.Println(string(byte))
+//	//if err != nil {
+//	//	t.Fatal(err)
+//	//}
+//
+//	//installCmd := exec.Command("pip", "install", "-r", "requirements.txt")
+//	//err = installCmd.Run()
+//	//if err != nil {
+//	//	t.Fatal(err)
+//	//}
+func TestE2E_1(t *testing.T) {
+	// STAGE 1. GPT
+	//schemaRaw, err := engine.CreatePrompt("Find the most expensive gas fees-cost transaction in last 7 days.")
+	bodyInPrompt := client.GPTPromptRequest{
+		Prompt: "Find the most expensive gas fees-cost transaction in last 7 days.",
+	}
+	bodyInPromptRaw, err := json.Marshal(bodyInPrompt)
+	if err != nil {
+		t.Errorf("could not marshal request body: %v", err)
+	}
+	err_gpt, ectx_gpt, hd_gpt := setupTest(t, http.MethodGet, cpkg.GPTGenerateQueryEndpoint, &bodyInPromptRaw)
+	if err_gpt != nil {
+		t.Fatalf("could not create handler: %v", err_gpt)
+	}
+	errGpt2 := hd_gpt.RunGptPythonClient(ectx_gpt)
+	if errGpt2 != nil {
+		t.Fatalf("could not create query: %v", errGpt2)
+	}
+	res_gpt := ectx_gpt.Response()
+	if res_gpt.Status != http.StatusOK {
+		t.Fatalf("expected status OK but got %v", res_gpt.Status)
+	}
+	bodyverifyGpt := res_gpt.Writer.(*httptest.ResponseRecorder).Body
+	//var gptResponse client.GPTPromptSuccessfulResponse
+	//if err_gpt = json.Unmarshal(bodyverifyGpt.Bytes(), &gptResponse); err_gpt != nil {
+	//	t.Fatalf("could not unmarshal response: %v", err_gpt)
+	//}
+	gptResponse := string(bodyverifyGpt.Bytes())
+	fmt.Println("gptResponse", gptResponse)
+
+	// 2. Create a query
+	bodyTest := &client.CreateFlipsideQueryRequest{
+		Sql:        gptResponse,
+		TtlMinutes: 15,
+		Cache:      true,
+		Params: struct {
+			AdditionalProp1 string `json:"additionalProp1"`
+			AdditionalProp2 string `json:"additionalProp2"`
+			AdditionalProp3 string `json:"additionalProp3"`
+		}{
+			AdditionalProp1: "string",
+			AdditionalProp2: "string",
+			AdditionalProp3: "string",
+		},
+	}
+
+	bodyRaw, err := json.Marshal(bodyTest)
+	if err != nil {
+		t.Errorf("could not marshal request body: %v", err)
+	}
+
+	err, ectx, hd := setupTest(t, http.MethodGet, client.GetAllModels, &bodyRaw)
+	if err != nil {
+		t.Fatalf("could not create handler: %v", err)
+	}
+	err = hd.CreateFlipsideQuery(ectx)
+	if err != nil {
+		t.Fatalf("could not create query: %v", err)
+	}
+	res := ectx.Response()
+	if res.Status != http.StatusOK {
+		t.Fatalf("expected status OK but got %v", res.Status)
+	}
+	bodyVerify := res.Writer.(*httptest.ResponseRecorder).Body
+	var queryResponse client.CreateFlipsideQuerySuccessResponse
+	if err = json.Unmarshal(bodyVerify.Bytes(), &queryResponse); err != nil {
+		t.Fatalf("could not unmarshal response: %v", err)
+	}
+
+	fmt.Println("queryResponse", queryResponse)
+
+	// 3. GET A RESULT
+}
+
+func TestFlipsideCryptoGetQueryResult(t *testing.T) {
+	//
+}
+
+func TestChatGptToFlipsideCryptoExample(t *testing.T) {
+	//
 }

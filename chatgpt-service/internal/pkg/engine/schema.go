@@ -9,9 +9,9 @@ type Schema struct {
 
 // EthereumCore : The database schema for EthereumCore blockchain
 const (
-	Ethereum        = "ethereum"
-	CoreSchema      = "core"
-	FactTransaction = "fact.transaction"
+	Ethereum         = "ethereum"
+	CoreSchema       = "core"
+	FactTransactions = "fact_transactions"
 )
 
 func (sh *Schema) String() string {
@@ -25,7 +25,7 @@ func (sh *Schema) String() string {
 func CreateEthereumCoreTransactionSchema() *Schema {
 	ChainName := Ethereum
 	SchemaName := CoreSchema
-	TableName := FactTransaction
+	TableName := FactTransactions
 	// TODO: Schema to have different struct
 	TableSchema := "BLOCK_HASH text, BLOCK_NUMBER number, BLOCK_TIMESTAMP timestamp_ntz, CUMULATIVE_GAS_USED float, ETH_VALUE float, FROM_ADDRESS text, GAS_LIMIT number, GAS_PRICE float, GAS_USED float"
 	return &Schema{ChainName: ChainName, SchemaName: SchemaName, TableName: TableName, TableSchema: TableSchema}

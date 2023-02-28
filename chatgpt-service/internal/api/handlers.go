@@ -12,18 +12,15 @@ import (
 
 type Handler struct {
 	oc   *client.OpenAIClient
+	fc   *client.FlipsideClient
 	ectx *echo.Context
 }
 
-func NewHandler(c echo.Context, cfg config.GlobalConfig, oc *client.OpenAIClient) (*Handler, error) {
-	//ocInterface := c.Get(client.OpenAIClientKey)
-	//oc, ok := ocInterface.(*client.OpenAIClient)
-	//if !ok {
-	//	return nil, errors.New("could not convert to OpenAI client")
-	//}
+func NewHandler(c echo.Context, cfg config.GlobalConfig, oc *client.OpenAIClient, fc *client.FlipsideClient) (*Handler, error) {
 	return &Handler{
 		oc:   oc,
 		ectx: &c,
+		fc:   fc,
 	}, nil
 }
 
@@ -124,17 +121,39 @@ func (hd *Handler) CreateCompletionStream(_ echo.Context) error {
 	}
 }
 
-func (hd *Handler) RunGptPythonClient(_ echo.Context, prompt *engine.Prompt) error {
+func (hd *Handler) RunGptPythonClient(_ echo.Context) error {
 	accessToken, err := (*hd.oc).GetAccessToken()
+	if err != nil {
+		return err
+	}
+
+	var promptRaw cif.GPTPromptRequest
+	if err := (*hd.ectx).Bind(&promptRaw); err != nil {
+		return err
+	}
+	// TODO: temporarily
+	prompt, err := engine.CreatePrompt(promptRaw)
 	if err != nil {
 		return err
 	}
 	promptInString := prompt.String()
 
-	result, _ := exec.Command("python", "../pkg/client/ChatbotRunner.py", accessToken, promptInString).Output()
+	result, err := exec.Command("python", "../pkg/client/ChatbotRunner.py", accessToken, promptInString).Output()
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
 	}
 	return (*hd.ectx).String(200, string(result))
+}
+
+func (hd *Handler) CreateFlipsideQuery(_ echo.Context) error {
+	var cq cif.CreateFlipsideQueryRequest
+	if err := (*hd.ectx).Bind(&cq); err != nil {
+		return err
+	}
+	res, err := hd.fc.CreateFlipsideQuery((*hd.ectx).Request().Context(), cq)
+	if err != nil {
+		return err
+	}
+	return (*hd.ectx).JSON(200, res)
 }

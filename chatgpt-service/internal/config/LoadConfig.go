@@ -24,6 +24,7 @@ func LoadConfig(filePath string, env string) (*GlobalConfig, error) {
 		return nil, fmt.Errorf("error unmarshaling config file: %v", err)
 	}
 	cfg.OpenAIEnv.ParseEnv(k, env)
+	cfg.FlipsideEnv.ParseEnv(k, env)
 
 	if cfg.Environment == "" {
 		logrus.WithFields(logrus.Fields{

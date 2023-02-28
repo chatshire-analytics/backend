@@ -15,6 +15,7 @@ func NewOpenAIClient(cfg *config.GlobalConfig, options ...client.ClientOption) (
 	cl := &client.OpenAIClient{
 		UserAgent:     constants.DefaultUserAgent,
 		ApiKey:        cfg.OpenAIEnv.API_KEY,
+		AccessToken:   cfg.OpenAIEnv.ACCESS_TOKEN,
 		BaseURL:       constants.DefaultBaseURL,
 		HttpClient:    httpClient,
 		DefaultEngine: constants.DefaultEngine,
@@ -25,6 +26,19 @@ func NewOpenAIClient(cfg *config.GlobalConfig, options ...client.ClientOption) (
 		if err != nil {
 			return nil, err
 		}
+	}
+	return cl, nil
+}
+
+func NewFlipsideClient(cfg *config.GlobalConfig) (*client.FlipsideClient, error) {
+	httpClient := &http.Client{
+		Timeout: time.Duration(constants.DefaultTimeoutSeconds * time.Second),
+	}
+	cl := &client.FlipsideClient{
+		UserAgent:  constants.DefaultUserAgent,
+		HttpClient: httpClient,
+		ApiKey:     cfg.FlipsideEnv.API_KEY,
+		BaseURL:    constants.DefaultFlipsideBaseURL,
 	}
 	return cl, nil
 }

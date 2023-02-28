@@ -18,6 +18,7 @@ import (
 )
 
 const OpenAIClientKey = "OpenAIClient"
+const GPTGenerateQueryEndpoint = "/gpt/generate"
 
 type OpenAIClient struct {
 	BaseURL       string

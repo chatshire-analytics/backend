@@ -1,6 +1,9 @@
 package engine
 
-import "fmt"
+import (
+	"chatgpt-service/pkg/client"
+	"fmt"
+)
 
 type Prompt struct {
 	message string
@@ -13,7 +16,8 @@ func (p *Prompt) String() string {
 }
 
 // TODO: only single prompt at the moment
-func CreatePrompt(prompt string) (*Prompt, error) {
+func CreatePrompt(promptRaw client.GPTPromptRequest) (*Prompt, error) {
+	prompt := promptRaw.Prompt
 	message := "I want to you to act like the expert who are good at writing SQL query." + "\n"
 	message += fmt.Sprintf("Given the table below, please write the SQL query that can get the info about %s", prompt) + "\n"
 	message += "GIVE A SQL QUERY ONLY **without** any further responses/explanations." + "\n"
