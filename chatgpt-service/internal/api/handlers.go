@@ -140,3 +140,15 @@ func (hd *Handler) RunGptPythonClient(_ echo.Context, prompt *engine.Prompt) err
 	}
 	return (*hd.ectx).String(200, string(result))
 }
+
+func (hd *Handler) CreateFlipsideQuery(_ echo.Context) error {
+	var cq cif.CreateFlipsideQueryRequest
+	if err := (*hd.ectx).Bind(&cq); err != nil {
+		return err
+	}
+	res, err := hd.fc.CreateFlipsideQuery((*hd.ectx).Request().Context(), cq)
+	if err != nil {
+		return err
+	}
+	return (*hd.ectx).JSON(200, res)
+}

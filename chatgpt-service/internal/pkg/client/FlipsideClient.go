@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	cif "chatgpt-service/pkg/client"
 	cerror "chatgpt-service/pkg/errors"
 	"context"
 	"encoding/json"
@@ -14,6 +15,10 @@ import (
 )
 
 const FlipsideClientKey = "FlipsideClient"
+
+const (
+	CreateQueryEndpoint = "/queries"
+)
 
 type FlipsideClient struct {
 	BaseURL    string
@@ -38,13 +43,14 @@ func (fc *FlipsideClient) NewRequestBuilder(ctx context.Context, method string, 
 	if err != nil {
 		return nil, err
 	}
-	url := fc.BaseURL + path // link to openai.com
+	url := fc.BaseURL + path // link to flipsidecrypto.com
 	req, err := http.NewRequestWithContext(ctx, method, url, br)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", fc.ApiKey))
+	// https://docs.flipsidecrypto.com/shroomdk-sdk/get-started/rest-api
+	req.Header.Set("x-api-key", fc.ApiKey)
 	return req, nil
 }
 
@@ -88,4 +94,21 @@ func (fc *FlipsideClient) getResponseObject(rsp *http.Response, v interface{}) e
 		return fmt.Errorf("invalid json response: %w", err)
 	}
 	return nil
+}
+
+func (fc *FlipsideClient) CreateFlipsideQuery(ctx context.Context, request cif.CreateFlipsideQueryRequest) (*cif.CreateFlipsideQuerySuccessResponse, error) {
+	endpoint := CreateQueryEndpoint
+	req, err := fc.NewRequestBuilder(ctx, http.MethodPost, endpoint, request)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := fc.ExecuteRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	output := new(cif.CreateFlipsideQuerySuccessResponse)
+	if err := fc.getResponseObject(resp, output); err != nil {
+		return nil, err
+	}
+	return output, nil
 }

@@ -215,3 +215,105 @@ func TestCreateCompletionStreamTrue(t *testing.T) {
 	fmt.Println("rawString", rawString)
 	assert.NotEmpty(t, rawString)
 }
+
+func TestFlipsideCryptoCreateAQuery(t *testing.T) {
+	// given
+	bodyTest := &client.CreateFlipsideQueryRequest{
+		Sql:        "select TX_ID from ethereum.TRANSACTIONS limit 10",
+		TtlMinutes: 15,
+		Cache:      true,
+		Params: struct {
+			AdditionalProp1 string `json:"additionalProp1"`
+			AdditionalProp2 string `json:"additionalProp2"`
+			AdditionalProp3 string `json:"additionalProp3"`
+		}{
+			AdditionalProp1: "string",
+			AdditionalProp2: "string",
+			AdditionalProp3: "string",
+		},
+	}
+
+	bodyRaw, err := json.Marshal(bodyTest)
+	if err != nil {
+		t.Errorf("could not marshal request body: %v", err)
+	}
+
+	err, ectx, hd := setupTest(t, http.MethodGet, client.GetAllModels, &bodyRaw)
+	if err != nil {
+		t.Fatalf("could not create handler: %v", err)
+	}
+
+	// when
+	err = hd.CreateFlipsideQuery(ectx)
+
+	// then
+	if err != nil {
+		t.Fatalf("could not create query: %v", err)
+	}
+	res := ectx.Response()
+	if res.Status != http.StatusOK {
+		t.Fatalf("expected status OK but got %v", res.Status)
+	}
+	bodyVerify := res.Writer.(*httptest.ResponseRecorder).Body
+	var queryResponse client.GetFlipsideQueryResultSuccessResponse
+	if err = json.Unmarshal(bodyVerify.Bytes(), &queryResponse); err != nil {
+		t.Fatalf("could not unmarshal response: %v", err)
+	}
+
+	fmt.Println("queryResponse", queryResponse)
+}
+
+func TestE2E_1(t *testing.T) {
+	// given
+	bodyTest := &client.CreateFlipsideQueryRequest{
+		Sql:        "select TX_ID from ethereum.TRANSACTIONS limit 10",
+		TtlMinutes: 15,
+		Cache:      true,
+		Params: struct {
+			AdditionalProp1 string `json:"additionalProp1"`
+			AdditionalProp2 string `json:"additionalProp2"`
+			AdditionalProp3 string `json:"additionalProp3"`
+		}{
+			AdditionalProp1: "string",
+			AdditionalProp2: "string",
+			AdditionalProp3: "string",
+		},
+	}
+
+	bodyRaw, err := json.Marshal(bodyTest)
+	if err != nil {
+		t.Errorf("could not marshal request body: %v", err)
+	}
+
+	err, ectx, hd := setupTest(t, http.MethodGet, client.GetAllModels, &bodyRaw)
+	if err != nil {
+		t.Fatalf("could not create handler: %v", err)
+	}
+
+	// when
+	err = hd.CreateFlipsideQuery(ectx)
+
+	// then
+	if err != nil {
+		t.Fatalf("could not create query: %v", err)
+	}
+	res := ectx.Response()
+	if res.Status != http.StatusOK {
+		t.Fatalf("expected status OK but got %v", res.Status)
+	}
+	bodyVerify := res.Writer.(*httptest.ResponseRecorder).Body
+	var queryResponse client.GetFlipsideQueryResultSuccessResponse
+	if err = json.Unmarshal(bodyVerify.Bytes(), &queryResponse); err != nil {
+		t.Fatalf("could not unmarshal response: %v", err)
+	}
+
+	fmt.Println("queryResponse", queryResponse)
+}
+
+func TestFlipsideCryptoGetQueryResult(t *testing.T) {
+	//
+}
+
+func TestChatGptToFlipsideCryptoExample(t *testing.T) {
+	//
+}
