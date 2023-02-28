@@ -7,10 +7,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func InitializeEcho(cfg *config.GlobalConfig, oc *client.OpenAIClientInterface) (error, *echo.Echo) {
+func InitializeEcho(cfg *config.GlobalConfig, oc client.OpenAIClient) (error, *echo.Echo) {
 	e := echo.New()
-	ConfigHandler(e, *cfg, oc)
-	err := api.SetupRoutes(e)
+	//ConfigHandler(e, *cfg, oc)
+	err := api.SetupRoutes(e, *cfg, oc)
 	if err != nil {
 		return err, nil
 	}

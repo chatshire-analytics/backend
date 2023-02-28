@@ -7,7 +7,7 @@ import (
 	"chatgpt-service/internal/api"
 	"chatgpt-service/internal/config"
 	cpkg "chatgpt-service/internal/pkg/client"
-	"chatgpt-service/internal/pkg/engine"
+	"chatgpt-service/internal/pkg/constants"
 	"chatgpt-service/pkg/client"
 	"encoding/json"
 	"fmt"
@@ -39,7 +39,7 @@ func setupTest(t *testing.T, method string, endpoint string, bodyRaw *[]byte) (e
 	reqRaw.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	ectx := e.NewContext(reqRaw, httptest.NewRecorder())
 	ectx.Set(cpkg.OpenAIClientKey, oc)
-	hd, err := api.NewHandler(ectx)
+	hd, err := api.NewHandler(ectx, *cfg, oc)
 	if err != nil {
 		t.Errorf("could not create handler: %v", err)
 	}
@@ -69,7 +69,7 @@ func setupTestSSE(t *testing.T, method string, endpoint string, bodyRaw *[]byte)
 	reqRaw.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	ectx := e.NewContext(reqRaw, httptest.NewRecorder())
 	ectx.Set(cpkg.OpenAIClientKey, oc)
-	hd, err := api.NewHandler(ectx)
+	hd, err := api.NewHandler(ectx, *cfg, oc)
 	if err != nil {
 		t.Errorf("could not create handler: %v", err)
 	}
@@ -107,7 +107,7 @@ func TestListModels(t *testing.T) {
 func TestRetrieveModel(t *testing.T) {
 	// given
 	err, ectx, hd := setupTest(t, http.MethodGet, client.RetrieveModels, nil)
-	EXAMPLE_MODEL_ID := engine.TextDavinci003Engine
+	EXAMPLE_MODEL_ID := constants.TextDavinci003Engine
 	ectx.SetParamNames(client.ModelIdParamKey)
 	ectx.SetParamValues(EXAMPLE_MODEL_ID)
 

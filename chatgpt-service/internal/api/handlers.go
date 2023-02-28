@@ -1,12 +1,12 @@
 package api
 
 import (
+	"chatgpt-service/internal/config"
 	"chatgpt-service/internal/pkg/client"
 	"chatgpt-service/internal/pkg/engine"
 	cif "chatgpt-service/pkg/client"
 	"fmt"
 	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
 	"os/exec"
 )
 
@@ -15,12 +15,12 @@ type Handler struct {
 	ectx *echo.Context
 }
 
-func NewHandler(c echo.Context) (*Handler, error) {
-	ocInterface := c.Get(client.OpenAIClientKey)
-	oc, ok := ocInterface.(*client.OpenAIClient)
-	if !ok {
-		return nil, errors.New("could not convert to OpenAI client")
-	}
+func NewHandler(c echo.Context, cfg config.GlobalConfig, oc *client.OpenAIClient) (*Handler, error) {
+	//ocInterface := c.Get(client.OpenAIClientKey)
+	//oc, ok := ocInterface.(*client.OpenAIClient)
+	//if !ok {
+	//	return nil, errors.New("could not convert to OpenAI client")
+	//}
 	return &Handler{
 		oc:   oc,
 		ectx: &c,

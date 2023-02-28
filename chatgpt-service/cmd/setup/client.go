@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func NewOpenAIClient(cfg *config.GlobalConfig, options ...client.ClientOption) (client.OpenAIClientInterface, error) {
+func NewOpenAIClient(cfg *config.GlobalConfig, options ...client.ClientOption) (*client.OpenAIClient, error) {
 	httpClient := &http.Client{
 		Timeout: time.Duration(constants.DefaultTimeoutSeconds * time.Second),
 	}

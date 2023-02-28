@@ -28,7 +28,7 @@ func main() {
 			errCh <- err
 		}
 		// setup echo server
-		err, e := setup.InitializeEcho(cfg, &oc)
+		err, e := setup.InitializeEcho(cfg, *oc)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"service":   "chatgpt-service",
