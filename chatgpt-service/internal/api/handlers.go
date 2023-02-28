@@ -155,7 +155,10 @@ func (hd *Handler) CreateFlipsideQuery(_ echo.Context) error {
 	}
 	res, err := hd.fc.CreateFlipsideQuery((*hd.ectx).Request().Context(), cq)
 	if err != nil {
-		return err
+		// TODO: temporarily return the error message as the response body
+		resBody := make(map[string]string)
+		resBody["status"] = "failed to create query"
+		return (*hd.ectx).JSON(http.StatusBadRequest, resBody)
 	}
 	return (*hd.ectx).JSON(200, res)
 }
