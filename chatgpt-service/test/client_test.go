@@ -255,7 +255,7 @@ func TestFlipsideCryptoCreateAQuery(t *testing.T) {
 		t.Fatalf("expected status OK but got %v", res.Status)
 	}
 	bodyVerify := res.Writer.(*httptest.ResponseRecorder).Body
-	var queryResponse client.GetFlipsideQueryResultSuccessResponse
+	var queryResponse client.CreateFlipsideQuerySuccessResponse
 	if err = json.Unmarshal(bodyVerify.Bytes(), &queryResponse); err != nil {
 		t.Fatalf("could not unmarshal response: %v", err)
 	}
@@ -345,7 +345,7 @@ func TestE2E_1(t *testing.T) {
 		t.Fatalf("expected status OK but got %v", res.Status)
 	}
 	bodyVerify := res.Writer.(*httptest.ResponseRecorder).Body
-	var queryResponse client.GetFlipsideQueryResultSuccessResponse
+	var queryResponse client.CreateFlipsideQuerySuccessResponse
 	if err = json.Unmarshal(bodyVerify.Bytes(), &queryResponse); err != nil {
 		t.Fatalf("could not unmarshal response: %v", err)
 	}

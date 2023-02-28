@@ -1,5 +1,7 @@
 package client
 
+import "time"
+
 type CreateFlipsideQueryRequest struct {
 	Sql        string `json:"sql"`
 	TtlMinutes int    `json:"ttl_minutes"`
@@ -16,21 +18,19 @@ type CreateFlipsideQuerySuccessResponse struct {
 	Cached bool   `json:"cached"`
 }
 
-type CreateFlipsideQueryErrorResponse struct {
+type CommonFlipsideQueryErrorResponse struct {
 	Errors struct {
 		AdditionalProp1 struct {
 		} `json:"additionalProp1"`
 	} `json:"errors"`
 }
 
-type GetFlipsideQueryResultSuccessResponse struct {
-	Token  string `json:"token"`
-	Cached bool   `json:"cached"`
-}
-
-type GetFlipsideQueryResultErrorResponse struct {
-	Errors struct {
-		AdditionalProp1 struct {
-		} `json:"additionalProp1"`
-	} `json:"errors"`
+type GetFlipsideQuerySuccessResult struct {
+	Results      [][]string `json:"results"`
+	ColumnLabels []string   `json:"columnLabels"`
+	ColumnTypes  []string   `json:"columnTypes"`
+	Status       string     `json:"status"`
+	Message      string     `json:"message"`
+	StartedAt    time.Time  `json:"startedAt"`
+	EndedAt      time.Time  `json:"endedAt"`
 }

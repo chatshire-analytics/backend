@@ -138,7 +138,7 @@ func (hd *Handler) RunGptPythonClient(_ echo.Context) error {
 	}
 	promptInString := prompt.String()
 
-	result, _ := exec.Command("python", "../pkg/client/ChatbotRunner.py", accessToken, promptInString).Output()
+	result, err := exec.Command("python", "../pkg/client/ChatbotRunner.py", accessToken, promptInString).Output()
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
