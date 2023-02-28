@@ -44,6 +44,7 @@ func SetupRoutes(e *echo.Echo, cfg config.GlobalConfig, oc gclient.OpenAIClient,
 	e.POST(client.CreateCompletionEndpoint, hd.CreateCompletion)
 	e.POST(gclient.GPTGenerateQueryEndpoint, hd.RunGptPythonClient)
 	e.POST(gclient.CreateFlipsideQueryEndpoint, hd.CreateFlipsideQuery)
+	e.GET(gclient.GetFlipsideQueryResultEndpoint, hd.GetFlipsideQueryResult)
 
 	return nil
 }

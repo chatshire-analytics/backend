@@ -17,8 +17,9 @@ import (
 const FlipsideClientKey = "FlipsideClient"
 
 const (
-	CreateQueryEndpoint         = "/queries"
-	CreateFlipsideQueryEndpoint = "/flipside/queries"
+	CreateQueryEndpoint            = "/queries"
+	CreateFlipsideQueryEndpoint    = "/flipside/queries"
+	GetFlipsideQueryResultEndpoint = CreateFlipsideQueryEndpoint + "/:token"
 )
 
 type FlipsideClient struct {
@@ -109,6 +110,25 @@ func (fc *FlipsideClient) CreateFlipsideQuery(ctx context.Context, request cif.C
 	}
 	output := new(cif.CreateFlipsideQuerySuccessResponse)
 	if err := fc.getResponseObject(resp, output); err != nil {
+		return nil, err
+	}
+	return output, nil
+}
+
+func (fc *FlipsideClient) GetFlipsideQueryResult(ctx context.Context, request cif.GetFlipsideQueryResultRequest) (*cif.GetFlipsideQueryResultSuccessResponse, error) {
+	// https://node-api.flipsidecrypto.com/queries/{token}
+	endpoint := CreateQueryEndpoint + "/" + request.Token
+	req, err := fc.NewRequestBuilder(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := fc.ExecuteRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	output := new(cif.GetFlipsideQueryResultSuccessResponse)
+	if err := fc.getResponseObject(resp, output); err != nil {
+		//output := new(cif.CommonFlipsideQueryErrorResponse)
 		return nil, err
 	}
 	return output, nil

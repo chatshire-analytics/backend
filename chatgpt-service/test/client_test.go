@@ -19,7 +19,7 @@ import (
 	"testing"
 )
 
-func setupTest(t *testing.T, method string, endpoint string, bodyRaw *[]byte) (error, echo.Context, *api.Handler) {
+func setupTest(t *testing.T, method string, endpoint string, bodyRaw *[]byte, paramStr *string) (error, echo.Context, *api.Handler) {
 	cfg, err := config.LoadConfig(config.TestConfigPath, "dev")
 	if err != nil {
 		t.Errorf("could not load config: %v", err)
@@ -39,15 +39,34 @@ func setupTest(t *testing.T, method string, endpoint string, bodyRaw *[]byte) (e
 	} else {
 		body = bytes.NewBuffer(*bodyRaw)
 	}
-	reqRaw := httptest.NewRequest(method, endpoint, body)
-	reqRaw.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	ectx := e.NewContext(reqRaw, httptest.NewRecorder())
-	ectx.Set(cpkg.OpenAIClientKey, oc)
-	hd, err := api.NewHandler(ectx, *cfg, oc, fc)
-	if err != nil {
-		t.Errorf("could not create handler: %v", err)
+	if bodyRaw != nil {
+		reqRaw := httptest.NewRequest(method, endpoint, body)
+		reqRaw.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		ectx := e.NewContext(reqRaw, httptest.NewRecorder())
+		ectx.Set(cpkg.OpenAIClientKey, oc)
+		ectx.Set(cpkg.FlipsideClientKey, fc)
+		hd, err := api.NewHandler(ectx, *cfg, oc, fc)
+		if err != nil {
+			t.Errorf("could not create handler: %v", err)
+		}
+		return nil, ectx, hd
 	}
-	return nil, ectx, hd
+	// path parameter BindPathParams
+	if paramStr != nil {
+		reqRaw := httptest.NewRequest(method, endpoint, nil)
+		reqRaw.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		ectx := e.NewContext(reqRaw, httptest.NewRecorder())
+		ectx.SetParamNames("token")
+		ectx.SetParamValues(*paramStr)
+		ectx.Set(cpkg.OpenAIClientKey, oc)
+		ectx.Set(cpkg.FlipsideClientKey, fc)
+		hd, err := api.NewHandler(ectx, *cfg, oc, fc)
+		if err != nil {
+			t.Errorf("could not create handler: %v", err)
+		}
+		return nil, ectx, hd
+	}
+	return fmt.Errorf("could not create new http test handler"), nil, nil
 }
 
 func setupTestSSE(t *testing.T, method string, endpoint string, bodyRaw *[]byte) (error, echo.Context, *api.Handler) {
@@ -86,7 +105,7 @@ func setupTestSSE(t *testing.T, method string, endpoint string, bodyRaw *[]byte)
 
 func TestListModels(t *testing.T) {
 	// given
-	err, ectx, hd := setupTest(t, http.MethodGet, client.GetAllModels, nil)
+	err, ectx, hd := setupTest(t, http.MethodGet, client.GetAllModels, nil, nil)
 	if err != nil {
 		t.Fatalf("could not create handler: %v", err)
 	}
@@ -114,7 +133,7 @@ func TestListModels(t *testing.T) {
 
 func TestRetrieveModel(t *testing.T) {
 	// given
-	err, ectx, hd := setupTest(t, http.MethodGet, client.RetrieveModels, nil)
+	err, ectx, hd := setupTest(t, http.MethodGet, client.RetrieveModels, nil, nil)
 	EXAMPLE_MODEL_ID := constants.TextDavinci003Engine
 	ectx.SetParamNames(client.ModelIdParamKey)
 	ectx.SetParamValues(EXAMPLE_MODEL_ID)
@@ -147,7 +166,7 @@ func TestCreateCompletion(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not marshal request body: %v", err)
 	}
-	err, ectx, hd := setupTest(t, http.MethodPost, client.CreateCompletionEndpoint, &bodyRaw)
+	err, ectx, hd := setupTest(t, http.MethodPost, client.CreateCompletionEndpoint, &bodyRaw, nil)
 	if err != nil {
 		t.Errorf("could not setup test: %v", err)
 	}
@@ -238,7 +257,7 @@ func TestFlipsideCryptoCreateAQuery(t *testing.T) {
 		t.Errorf("could not marshal request body: %v", err)
 	}
 
-	err, ectx, hd := setupTest(t, http.MethodGet, client.GetAllModels, &bodyRaw)
+	err, ectx, hd := setupTest(t, http.MethodGet, client.GetAllModels, &bodyRaw, nil)
 	if err != nil {
 		t.Fatalf("could not create handler: %v", err)
 	}
@@ -291,7 +310,7 @@ func TestE2E_1(t *testing.T) {
 	if err != nil {
 		t.Errorf("could not marshal request body: %v", err)
 	}
-	err_gpt, ectx_gpt, hd_gpt := setupTest(t, http.MethodGet, cpkg.GPTGenerateQueryEndpoint, &bodyInPromptRaw)
+	err_gpt, ectx_gpt, hd_gpt := setupTest(t, http.MethodGet, cpkg.GPTGenerateQueryEndpoint, &bodyInPromptRaw, nil)
 	if err_gpt != nil {
 		t.Fatalf("could not create handler: %v", err_gpt)
 	}
@@ -332,7 +351,7 @@ func TestE2E_1(t *testing.T) {
 		t.Errorf("could not marshal request body: %v", err)
 	}
 
-	err, ectx, hd := setupTest(t, http.MethodGet, client.GetAllModels, &bodyRaw)
+	err, ectx, hd := setupTest(t, http.MethodGet, client.GetAllModels, &bodyRaw, nil)
 	if err != nil {
 		t.Fatalf("could not create handler: %v", err)
 	}
@@ -356,7 +375,33 @@ func TestE2E_1(t *testing.T) {
 }
 
 func TestFlipsideCryptoGetQueryResult(t *testing.T) {
-	//
+	// given
+	paramTest := &client.GetFlipsideQueryResultRequest{
+		Token: "queryRun-b4f7626374751285a9eb32bf477ec2ee",
+	}
+
+	err, ectx, hd := setupTest(t, http.MethodPost, cpkg.GetFlipsideQueryResultEndpoint, nil, &paramTest.Token)
+	if err != nil {
+		t.Fatalf("could not create handler: %v", err)
+	}
+
+	// when
+	err = hd.GetFlipsideQueryResult(ectx)
+	if err != nil {
+		t.Fatalf("could not get query result: %v", err)
+	}
+
+	// then
+	res := ectx.Response()
+	if res.Status != http.StatusOK {
+		t.Fatalf("expected status OK but got %v", res.Status)
+	}
+	bodyVerify := res.Writer.(*httptest.ResponseRecorder).Body
+	var queryResponse client.GetFlipsideQueryResultSuccessResponse
+	if err = json.Unmarshal(bodyVerify.Bytes(), &queryResponse); err != nil {
+		t.Fatalf("could not unmarshal response: %v", err)
+	}
+	fmt.Println("queryResponse", queryResponse)
 }
 
 func TestChatGptToFlipsideCryptoExample(t *testing.T) {
