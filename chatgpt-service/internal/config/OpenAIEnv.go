@@ -7,7 +7,7 @@ import (
 
 type OpenAIENV struct {
 	API_KEY      string `koanf:"%s.OpenAIEnv.API_KEY" envDefault:""`
-	ACCESS_TOKEN string `koanf:"%s.OpenAIEnv.ACCESS_KEY" envDefault:""`
+	ACCESS_TOKEN string `koanf:"%s.OpenAIEnv.ACCESS_TOKEN" envDefault:""`
 }
 
 func (oaenv *OpenAIENV) ParseEnv(k *koanf.Koanf, env string) {

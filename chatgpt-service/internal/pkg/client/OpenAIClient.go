@@ -18,7 +18,7 @@ import (
 )
 
 const OpenAIClientKey = "OpenAIClient"
-const CreateFlipsideQueryEndpoint = "/flipside/queries"
+const GPTGenerateQueryEndpoint = "/gpt/generate"
 
 type OpenAIClient struct {
 	BaseURL       string

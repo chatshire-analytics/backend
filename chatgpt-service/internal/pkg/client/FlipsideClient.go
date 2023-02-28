@@ -17,7 +17,8 @@ import (
 const FlipsideClientKey = "FlipsideClient"
 
 const (
-	CreateQueryEndpoint = "/queries"
+	CreateQueryEndpoint         = "/queries"
+	CreateFlipsideQueryEndpoint = "/flipside/queries"
 )
 
 type FlipsideClient struct {

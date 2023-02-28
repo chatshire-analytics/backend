@@ -15,6 +15,7 @@ func NewOpenAIClient(cfg *config.GlobalConfig, options ...client.ClientOption) (
 	cl := &client.OpenAIClient{
 		UserAgent:     constants.DefaultUserAgent,
 		ApiKey:        cfg.OpenAIEnv.API_KEY,
+		AccessToken:   cfg.OpenAIEnv.ACCESS_TOKEN,
 		BaseURL:       constants.DefaultBaseURL,
 		HttpClient:    httpClient,
 		DefaultEngine: constants.DefaultEngine,

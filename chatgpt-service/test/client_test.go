@@ -263,10 +263,57 @@ func TestFlipsideCryptoCreateAQuery(t *testing.T) {
 	fmt.Println("queryResponse", queryResponse)
 }
 
+// // NOTE: PLEASE CONFIGURE PYTHON PATH BEFORE RUNNING THE TEST!
+//
+//	// python -c "import sys; print(sys.prefix)"
+//	// PATH=/Users/sigridjin.eth/Documents/github/backend/venv/bin:$PATH
+//
+//	//cmd2 := exec.Command("python", "-c", "import sys; print(sys.prefix)")
+//	//byte, err := cmd2.Output()
+//	//byte = bytes.TrimSpace(byte)
+//	//fmt.Println(string(byte))
+//	//if err != nil {
+//	//	t.Fatal(err)
+//	//}
+//
+//	//installCmd := exec.Command("pip", "install", "-r", "requirements.txt")
+//	//err = installCmd.Run()
+//	//if err != nil {
+//	//	t.Fatal(err)
+//	//}
 func TestE2E_1(t *testing.T) {
-	// given
+	// STAGE 1. GPT
+	//schemaRaw, err := engine.CreatePrompt("Find the most expensive gas fees-cost transaction in last 7 days.")
+	bodyInPrompt := client.GPTPromptRequest{
+		Prompt: "Find the most expensive gas fees-cost transaction in last 7 days.",
+	}
+	bodyInPromptRaw, err := json.Marshal(bodyInPrompt)
+	if err != nil {
+		t.Errorf("could not marshal request body: %v", err)
+	}
+	err_gpt, ectx_gpt, hd_gpt := setupTest(t, http.MethodGet, cpkg.GPTGenerateQueryEndpoint, &bodyInPromptRaw)
+	if err_gpt != nil {
+		t.Fatalf("could not create handler: %v", err_gpt)
+	}
+	errGpt2 := hd_gpt.RunGptPythonClient(ectx_gpt)
+	if errGpt2 != nil {
+		t.Fatalf("could not create query: %v", errGpt2)
+	}
+	res_gpt := ectx_gpt.Response()
+	if res_gpt.Status != http.StatusOK {
+		t.Fatalf("expected status OK but got %v", res_gpt.Status)
+	}
+	bodyverifyGpt := res_gpt.Writer.(*httptest.ResponseRecorder).Body
+	//var gptResponse client.GPTPromptSuccessfulResponse
+	//if err_gpt = json.Unmarshal(bodyverifyGpt.Bytes(), &gptResponse); err_gpt != nil {
+	//	t.Fatalf("could not unmarshal response: %v", err_gpt)
+	//}
+	gptResponse := string(bodyverifyGpt.Bytes())
+	fmt.Println("gptResponse", gptResponse)
+
+	// 2. Create a query
 	bodyTest := &client.CreateFlipsideQueryRequest{
-		Sql:        "select TX_ID from ethereum.TRANSACTIONS limit 10",
+		Sql:        gptResponse,
 		TtlMinutes: 15,
 		Cache:      true,
 		Params: struct {
@@ -289,11 +336,7 @@ func TestE2E_1(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not create handler: %v", err)
 	}
-
-	// when
 	err = hd.CreateFlipsideQuery(ectx)
-
-	// then
 	if err != nil {
 		t.Fatalf("could not create query: %v", err)
 	}
@@ -308,6 +351,8 @@ func TestE2E_1(t *testing.T) {
 	}
 
 	fmt.Println("queryResponse", queryResponse)
+
+	// 3. GET A RESULT
 }
 
 func TestFlipsideCryptoGetQueryResult(t *testing.T) {

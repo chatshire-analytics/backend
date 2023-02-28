@@ -17,11 +17,6 @@ type Handler struct {
 }
 
 func NewHandler(c echo.Context, cfg config.GlobalConfig, oc *client.OpenAIClient, fc *client.FlipsideClient) (*Handler, error) {
-	//ocInterface := c.Get(client.OpenAIClientKey)
-	//oc, ok := ocInterface.(*client.OpenAIClient)
-	//if !ok {
-	//	return nil, errors.New("could not convert to OpenAI client")
-	//}
 	return &Handler{
 		oc:   oc,
 		ectx: &c,
@@ -126,8 +121,18 @@ func (hd *Handler) CreateCompletionStream(_ echo.Context) error {
 	}
 }
 
-func (hd *Handler) RunGptPythonClient(_ echo.Context, prompt *engine.Prompt) error {
+func (hd *Handler) RunGptPythonClient(_ echo.Context) error {
 	accessToken, err := (*hd.oc).GetAccessToken()
+	if err != nil {
+		return err
+	}
+
+	var promptRaw cif.GPTPromptRequest
+	if err := (*hd.ectx).Bind(&promptRaw); err != nil {
+		return err
+	}
+	// TODO: temporarily
+	prompt, err := engine.CreatePrompt(promptRaw)
 	if err != nil {
 		return err
 	}
