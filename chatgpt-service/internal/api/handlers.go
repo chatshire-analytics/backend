@@ -7,7 +7,9 @@ import (
 	cif "chatgpt-service/pkg/client"
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"net/http"
 	"os/exec"
+	"strings"
 )
 
 type Handler struct {
@@ -165,7 +167,14 @@ func (hd *Handler) GetFlipsideQueryResult(ctx echo.Context) error {
 	}
 	result, err := hd.fc.GetFlipsideQueryResult((*hd.ectx).Request().Context(), gr)
 	if err != nil {
+		if strings.Contains(err.Error(), "running") {
+			// TODO: extract the response body separately. the response body should be {"status": "running! if it takes too long, submit new query", "token": token}
+			resBody := make(map[string]string)
+			resBody["token"] = token
+			resBody["status"] = "running! if it takes too long, submit new query"
+			return (*hd.ectx).JSON(http.StatusAccepted, resBody)
+		}
 		return err
 	}
-	return (*hd.ectx).JSON(200, result)
+	return (*hd.ectx).JSON(http.StatusOK, result)
 }

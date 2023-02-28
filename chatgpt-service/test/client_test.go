@@ -286,8 +286,8 @@ func TestFlipsideCryptoCreateAQuery(t *testing.T) {
 func TestFlipsideCryptoGetQueryResult(t *testing.T) {
 	// given
 	paramTest := &client.GetFlipsideQueryResultRequest{
-		//Token: "queryRun-b4f7626374751285a9eb32bf477ec2ee",
-		Token: "queryRun-8d8c035e974d12bb180f8f8dd898b1ba",
+		Token: "queryRun-b4f7626374751285a9eb32bf477ec2ee",
+		//Token: "queryRun-8d8c035e974d12bb180f8f8dd898b1ba",
 	}
 
 	err, ectx, hd := setupTest(t, http.MethodPost, cpkg.GetFlipsideQueryResultEndpoint, nil, &paramTest.Token)
@@ -312,6 +312,31 @@ func TestFlipsideCryptoGetQueryResult(t *testing.T) {
 		t.Fatalf("could not unmarshal response: %v", err)
 	}
 	fmt.Println("queryResponse", queryResponse)
+}
+
+func TestFlipsideCryptoGetQueryRunningResult(t *testing.T) {
+	// given
+	paramTest := &client.GetFlipsideQueryResultRequest{
+		//Token: "queryRun-b4f7626374751285a9eb32bf477ec2ee",
+		Token: "queryRun-8d8c035e974d12bb180f8f8dd898b1ba",
+	}
+
+	err, ectx, hd := setupTest(t, http.MethodPost, cpkg.GetFlipsideQueryResultEndpoint, nil, &paramTest.Token)
+	if err != nil {
+		t.Fatalf("could not create handler: %v", err)
+	}
+
+	// when
+	err = hd.GetFlipsideQueryResult(ectx)
+	if err != nil {
+		t.Fatalf("could not get query result: %v", err)
+	}
+
+	// then
+	res := ectx.Response()
+	if res.Status != http.StatusAccepted {
+		t.Fatalf("expected status OK but got %v", res.Status)
+	}
 }
 
 // INTEGRATION TEST !!!
@@ -405,8 +430,6 @@ func TestIntegration_1(t *testing.T) {
 	}
 
 	fmt.Println("queryResponse", queryResponse)
-
-	// 3. GET A RESULT
 }
 
 func TestEndToEnd_1(t *testing.T) {

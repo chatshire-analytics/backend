@@ -131,5 +131,8 @@ func (fc *FlipsideClient) GetFlipsideQueryResult(ctx context.Context, request ci
 		//output := new(cif.CommonFlipsideQueryErrorResponse)
 		return nil, err
 	}
+	if output.Status == "running" {
+		return nil, &cerror.FlipsideError{Message: "query is still running"}
+	}
 	return output, nil
 }
