@@ -28,3 +28,16 @@ func NewOpenAIClient(cfg *config.GlobalConfig, options ...client.ClientOption) (
 	}
 	return cl, nil
 }
+
+func NewFlipsideClient(cfg *config.GlobalConfig) (*client.FlipsideClient, error) {
+	httpClient := &http.Client{
+		Timeout: time.Duration(constants.DefaultTimeoutSeconds * time.Second),
+	}
+	cl := &client.FlipsideClient{
+		UserAgent:  constants.DefaultUserAgent,
+		HttpClient: httpClient,
+		ApiKey:     cfg.FlipsideEnv.API_KEY,
+		BaseURL:    constants.DefaultFlipsideBaseURL,
+	}
+	return cl, nil
+}

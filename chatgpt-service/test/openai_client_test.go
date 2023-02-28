@@ -28,6 +28,10 @@ func setupTest(t *testing.T, method string, endpoint string, bodyRaw *[]byte) (e
 	if err != nil {
 		t.Errorf("could not create openai client: %v", err)
 	}
+	fc, err := setup.NewFlipsideClient(cfg)
+	if err != nil {
+		t.Errorf("could not create flipside client: %v", err)
+	}
 	e := echo.New()
 	var body io.Reader
 	if bodyRaw == nil {
@@ -39,7 +43,7 @@ func setupTest(t *testing.T, method string, endpoint string, bodyRaw *[]byte) (e
 	reqRaw.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	ectx := e.NewContext(reqRaw, httptest.NewRecorder())
 	ectx.Set(cpkg.OpenAIClientKey, oc)
-	hd, err := api.NewHandler(ectx, *cfg, oc)
+	hd, err := api.NewHandler(ectx, *cfg, oc, fc)
 	if err != nil {
 		t.Errorf("could not create handler: %v", err)
 	}
@@ -55,6 +59,10 @@ func setupTestSSE(t *testing.T, method string, endpoint string, bodyRaw *[]byte)
 	if err != nil {
 		t.Errorf("could not create openai client: %v", err)
 	}
+	fc, err := setup.NewFlipsideClient(cfg)
+	if err != nil {
+		t.Errorf("could not create flipside client: %v", err)
+	}
 	e := echo.New()
 	var body io.Reader
 	if bodyRaw == nil {
@@ -69,7 +77,7 @@ func setupTestSSE(t *testing.T, method string, endpoint string, bodyRaw *[]byte)
 	reqRaw.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	ectx := e.NewContext(reqRaw, httptest.NewRecorder())
 	ectx.Set(cpkg.OpenAIClientKey, oc)
-	hd, err := api.NewHandler(ectx, *cfg, oc)
+	hd, err := api.NewHandler(ectx, *cfg, oc, fc)
 	if err != nil {
 		t.Errorf("could not create handler: %v", err)
 	}

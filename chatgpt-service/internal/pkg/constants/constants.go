@@ -43,9 +43,10 @@ const (
 )
 
 const (
-	DefaultBaseURL        = "https://api.openai.com/v1"
-	DefaultUserAgent      = "mentat" // go-gpt3
-	DefaultTimeoutSeconds = 300
+	DefaultBaseURL         = "https://api.openai.com/v1"
+	DefaultFlipsideBaseURL = "https://node-api.flipsidecrypto.com"
+	DefaultUserAgent       = "mentat" // go-gpt3
+	DefaultTimeoutSeconds  = 300
 )
 
 func getEngineURL(engine string) string {

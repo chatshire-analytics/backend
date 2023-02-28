@@ -32,8 +32,8 @@ func HttpRequestLogHandler(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func SetupRoutes(e *echo.Echo, cfg config.GlobalConfig, oc gclient.OpenAIClient) error {
-	hd, err := NewHandler(e.AcquireContext(), cfg, &oc)
+func SetupRoutes(e *echo.Echo, cfg config.GlobalConfig, oc gclient.OpenAIClient, fc gclient.FlipsideClient) error {
+	hd, err := NewHandler(e.AcquireContext(), cfg, &oc, &fc)
 	if err != nil {
 		return err
 	}

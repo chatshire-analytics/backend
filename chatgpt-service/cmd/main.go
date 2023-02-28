@@ -27,8 +27,13 @@ func main() {
 		if err != nil {
 			errCh <- err
 		}
+		// setup flipside client
+		fc, err := setup.NewFlipsideClient(cfg)
+		if err != nil {
+			errCh <- err
+		}
 		// setup echo server
-		err, e := setup.InitializeEcho(cfg, *oc)
+		err, e := setup.InitializeEcho(cfg, *oc, *fc)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"service":   "chatgpt-service",

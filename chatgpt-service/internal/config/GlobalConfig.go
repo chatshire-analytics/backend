@@ -7,6 +7,7 @@ const TestConfigPath = "../config.yaml"
 type GlobalConfig struct {
 	Environment Environment `koanf:"Environment" envDefault:"dev"`
 	OpenAIEnv   OpenAIENV
+	FlipsideEnv FlipsideEnv
 }
 
 func (g *GlobalConfig) IsDev() bool {

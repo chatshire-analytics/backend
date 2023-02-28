@@ -12,10 +12,11 @@ import (
 
 type Handler struct {
 	oc   *client.OpenAIClient
+	fc   *client.FlipsideClient
 	ectx *echo.Context
 }
 
-func NewHandler(c echo.Context, cfg config.GlobalConfig, oc *client.OpenAIClient) (*Handler, error) {
+func NewHandler(c echo.Context, cfg config.GlobalConfig, oc *client.OpenAIClient, fc *client.FlipsideClient) (*Handler, error) {
 	//ocInterface := c.Get(client.OpenAIClientKey)
 	//oc, ok := ocInterface.(*client.OpenAIClient)
 	//if !ok {
@@ -24,6 +25,7 @@ func NewHandler(c echo.Context, cfg config.GlobalConfig, oc *client.OpenAIClient
 	return &Handler{
 		oc:   oc,
 		ectx: &c,
+		fc:   fc,
 	}, nil
 }
 
