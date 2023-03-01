@@ -4,6 +4,7 @@ import (
 	"chatgpt-service/internal/config"
 	"chatgpt-service/internal/pkg/client"
 	"chatgpt-service/internal/pkg/engine"
+	"chatgpt-service/internal/pkg/store"
 	cif "chatgpt-service/pkg/client"
 	"fmt"
 	"github.com/labstack/echo/v4"
@@ -16,13 +17,16 @@ type Handler struct {
 	oc   *client.OpenAIClient
 	fc   *client.FlipsideClient
 	ectx *echo.Context
+	// TODO: remove handler - database mapping connection
+	db *store.Database
 }
 
-func NewHandler(c echo.Context, cfg config.GlobalConfig, oc *client.OpenAIClient, fc *client.FlipsideClient) (*Handler, error) {
+func NewHandler(c echo.Context, cfg config.GlobalConfig, oc *client.OpenAIClient, fc *client.FlipsideClient, db *store.Database) (*Handler, error) {
 	return &Handler{
 		oc:   oc,
 		ectx: &c,
 		fc:   fc,
+		db:   db,
 	}, nil
 }
 
@@ -145,7 +149,18 @@ func (hd *Handler) RunGptPythonClient(_ echo.Context) error {
 		fmt.Println(err.Error())
 		return err
 	}
-	return (*hd.ectx).String(200, string(result))
+
+	id, err := hd.db.StoreGptPythonSqlResult(promptRaw.Prompt, string(result))
+	if err != nil {
+		return err
+	}
+
+	responseBody := cif.GPTPromptSuccessfulResponse{
+		Id:     id,
+		Result: string(result),
+	}
+
+	return (*hd.ectx).JSON(200, responseBody)
 }
 
 func (hd *Handler) CreateFlipsideQuery(_ echo.Context) error {
@@ -154,11 +169,17 @@ func (hd *Handler) CreateFlipsideQuery(_ echo.Context) error {
 		return err
 	}
 	res, err := hd.fc.CreateFlipsideQuery((*hd.ectx).Request().Context(), cq)
+	resBody := make(map[string]string)
 	if err != nil {
 		// TODO: temporarily return the error message as the response body
-		resBody := make(map[string]string)
-		resBody["status"] = "failed to create query"
+		resBody["status"] = err.Error()
 		return (*hd.ectx).JSON(http.StatusBadRequest, resBody)
+	}
+	err = hd.db.UpdateCreateFlipsideQueryResult(cq.Id, res.Token)
+	if err != nil {
+		resBody["status"] = err.Error()
+		fmt.Println(err.Error())
+		return (*hd.ectx).JSON(http.StatusServiceUnavailable, resBody)
 	}
 	return (*hd.ectx).JSON(200, res)
 }
@@ -169,15 +190,21 @@ func (hd *Handler) GetFlipsideQueryResult(ctx echo.Context) error {
 		Token: token,
 	}
 	result, err := hd.fc.GetFlipsideQueryResult((*hd.ectx).Request().Context(), gr)
+	// TODO: extract the response body separately. the response body should be {"status": "running! if it takes too long, submit new query", "token": token}
+	resBody := make(map[string]string)
 	if err != nil {
 		if strings.Contains(err.Error(), "running") {
-			// TODO: extract the response body separately. the response body should be {"status": "running! if it takes too long, submit new query", "token": token}
-			resBody := make(map[string]string)
 			resBody["token"] = token
 			resBody["status"] = "running! if it takes too long, submit new query"
 			return (*hd.ectx).JSON(http.StatusAccepted, resBody)
 		}
 		return err
+	}
+	err = hd.db.StoreGetFlipsideQueryResult(gr, *result)
+	if err != nil {
+		resBody["status"] = err.Error()
+		fmt.Println(err.Error())
+		return (*hd.ectx).JSON(http.StatusServiceUnavailable, resBody)
 	}
 	return (*hd.ectx).JSON(http.StatusOK, result)
 }

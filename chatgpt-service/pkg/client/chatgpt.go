@@ -5,5 +5,6 @@ type GPTPromptRequest struct {
 }
 
 type GPTPromptSuccessfulResponse struct {
-	Sequelize string
+	Id     int
+	Result string
 }

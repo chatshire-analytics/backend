@@ -3,6 +3,7 @@ package api
 import (
 	"chatgpt-service/internal/config"
 	gclient "chatgpt-service/internal/pkg/client"
+	"chatgpt-service/internal/pkg/store"
 	"chatgpt-service/pkg/client"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
@@ -32,8 +33,8 @@ func HttpRequestLogHandler(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func SetupRoutes(e *echo.Echo, cfg config.GlobalConfig, oc gclient.OpenAIClient, fc gclient.FlipsideClient) error {
-	hd, err := NewHandler(e.AcquireContext(), cfg, &oc, &fc)
+func SetupRoutes(e *echo.Echo, cfg config.GlobalConfig, oc gclient.OpenAIClient, fc gclient.FlipsideClient, db store.Database) error {
+	hd, err := NewHandler(e.AcquireContext(), cfg, &oc, &fc, &db)
 	if err != nil {
 		return err
 	}

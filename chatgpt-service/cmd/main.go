@@ -22,6 +22,8 @@ func main() {
 		if err != nil {
 			errCh <- err
 		}
+		// setup database
+		db := setup.InitializeDatabase(cfg)
 		// setup openai client
 		oc, err := setup.NewOpenAIClient(cfg)
 		if err != nil {
@@ -33,7 +35,7 @@ func main() {
 			errCh <- err
 		}
 		// setup echo server
-		err, e := setup.InitializeEcho(cfg, *oc, *fc)
+		err, e := setup.InitializeEcho(cfg, *oc, *fc, *db)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"service":   "chatgpt-service",
