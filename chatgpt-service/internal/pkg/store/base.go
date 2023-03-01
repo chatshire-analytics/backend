@@ -1,6 +1,7 @@
 package store
 
 import (
+	"chatgpt-service/internal/pkg/process"
 	"chatgpt-service/pkg/client"
 	"github.com/go-pg/pg"
 )
@@ -34,6 +35,32 @@ func (db *Database) StoreGptPythonSqlResult(sentence string, sql string) (int, e
 	return lastInsertId, nil
 }
 
-func (db *Database) StoreCreateFlipsideQueryResult(queryRequest *client.CreateFlipsideQueryRequest, queryResult *client.CreateFlipsideQuerySuccessResponse) error {
+func (db *Database) UpdateCreateFlipsideQueryResult(id int, token string) error {
+	// TODO: change to enum
+	status := "PENDING"
+	query := "UPDATE flipside_query_result SET status = ?, token = ? WHERE id = ?"
+	_, err := db.Exec(query, status, token, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (db *Database) StoreGetFlipsideQueryResult(request client.GetFlipsideQueryResultRequest, response client.GetFlipsideQueryResultSuccessResponse) error {
+	status := "SUCCEEDED"
+	query := "UPDATE flipside_query_result SET results = ?, status = ? WHERE token = ?"
+
+	token := request.Token
+
+	processedResults, err := process.TwoDimensionalInterfacesToJSONByte(response.Results)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(query, processedResults, status, token)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

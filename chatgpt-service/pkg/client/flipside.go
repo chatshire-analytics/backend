@@ -3,6 +3,7 @@ package client
 import "time"
 
 type CreateFlipsideQueryRequest struct {
+	Id         int    `json:"id"`
 	Sql        string `json:"sql"`
 	TtlMinutes int    `json:"ttl_minutes"`
 	Cache      bool   `json:"cache"`

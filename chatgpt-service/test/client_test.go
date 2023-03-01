@@ -458,9 +458,14 @@ func TestEndToEnd_1(t *testing.T) {
 	fmt.Println("res_gpt", res_gpt)
 
 	bodyverifyGpt := res_gpt.Writer.(*httptest.ResponseRecorder).Body
-	gptResponse := string(bodyverifyGpt.Bytes())
+	var gptQueryResponse client.GPTPromptSuccessfulResponse
+	if err_gpt = json.Unmarshal(bodyverifyGpt.Bytes(), &gptQueryResponse); err_gpt != nil {
+		t.Fatalf("could not unmarshal response: %v", err_gpt)
+	}
+
 	bodyTest := &client.CreateFlipsideQueryRequest{
-		Sql:        gptResponse,
+		Id:         gptQueryResponse.Id,
+		Sql:        gptQueryResponse.Result,
 		TtlMinutes: 15,
 		Cache:      true,
 		Params: struct {
@@ -506,6 +511,9 @@ func TestEndToEnd_1(t *testing.T) {
 
 	fmt.Println("found token ::: ", queryResponse.Token)
 
+	// rest 60 seconds for waiting query result
+	time.Sleep(60 * time.Second)
+
 	err_token, ectx_token, hd_token := setupTest(t, http.MethodGet, cpkg.GetFlipsideQueryResultEndpoint, nil, &paramTest.Token)
 	if err_token != nil {
 		t.Fatalf("could not create handler: %v", err)
@@ -515,9 +523,6 @@ func TestEndToEnd_1(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get query result: %v", err)
 	}
-
-	// rest 60 seconds for waiting query result
-	time.Sleep(60 * time.Second)
 
 	resToken := ectx_token.Response()
 	if resToken.Status != http.StatusOK {
@@ -556,9 +561,14 @@ func TestEndToEnd_2(t *testing.T) {
 	fmt.Println("res_gpt", res_gpt)
 
 	bodyverifyGpt := res_gpt.Writer.(*httptest.ResponseRecorder).Body
-	gptResponse := string(bodyverifyGpt.Bytes())
+	var gptQueryResponse client.GPTPromptSuccessfulResponse
+	if err_gpt = json.Unmarshal(bodyverifyGpt.Bytes(), &gptQueryResponse); err_gpt != nil {
+		t.Fatalf("could not unmarshal response: %v", err_gpt)
+	}
+
 	bodyTest := &client.CreateFlipsideQueryRequest{
-		Sql:        gptResponse,
+		Id:         gptQueryResponse.Id,
+		Sql:        gptQueryResponse.Result,
 		TtlMinutes: 15,
 		Cache:      true,
 		Params: struct {
@@ -604,6 +614,9 @@ func TestEndToEnd_2(t *testing.T) {
 
 	fmt.Println("found token ::: ", queryResponse.Token)
 
+	// rest 60 seconds for waiting query result
+	time.Sleep(60 * time.Second)
+
 	err_token, ectx_token, hd_token := setupTest(t, http.MethodGet, cpkg.GetFlipsideQueryResultEndpoint, nil, &paramTest.Token)
 	if err_token != nil {
 		t.Fatalf("could not create handler: %v", err)
@@ -613,9 +626,6 @@ func TestEndToEnd_2(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get query result: %v", err)
 	}
-
-	// rest 60 seconds for waiting query result
-	time.Sleep(60 * time.Second)
 
 	resToken := ectx_token.Response()
 	if resToken.Status != http.StatusOK {
