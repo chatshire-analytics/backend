@@ -4,11 +4,13 @@ import (
 	"chatgpt-service/internal/config"
 	"chatgpt-service/internal/pkg/client"
 	"chatgpt-service/internal/pkg/engine"
+	"chatgpt-service/internal/pkg/store"
 	cif "chatgpt-service/pkg/client"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -16,13 +18,16 @@ type Handler struct {
 	oc   *client.OpenAIClient
 	fc   *client.FlipsideClient
 	ectx *echo.Context
+	// TODO: remove handler - database mapping connection
+	db *store.Database
 }
 
-func NewHandler(c echo.Context, cfg config.GlobalConfig, oc *client.OpenAIClient, fc *client.FlipsideClient) (*Handler, error) {
+func NewHandler(c echo.Context, cfg config.GlobalConfig, oc *client.OpenAIClient, fc *client.FlipsideClient, db *store.Database) (*Handler, error) {
 	return &Handler{
 		oc:   oc,
 		ectx: &c,
 		fc:   fc,
+		db:   db,
 	}, nil
 }
 
@@ -145,7 +150,17 @@ func (hd *Handler) RunGptPythonClient(_ echo.Context) error {
 		fmt.Println(err.Error())
 		return err
 	}
-	return (*hd.ectx).String(200, string(result))
+
+	id, err := hd.db.StoreGptPythonSqlResult(promptRaw.Prompt, string(result))
+	if err != nil {
+		return err
+	}
+
+	responseBody := make(map[string]string)
+	responseBody["id"] = strconv.Itoa(id)
+	responseBody["result"] = string(result)
+
+	return (*hd.ectx).JSON(200, responseBody)
 }
 
 func (hd *Handler) CreateFlipsideQuery(_ echo.Context) error {
