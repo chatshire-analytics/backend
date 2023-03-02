@@ -69,7 +69,7 @@ func NewCompletionRequest(prompt string, maxTokens int, model *string, stream *b
 	*cr.TopP = 1.0
 	*cr.N = 1
 	*cr.LogProbs = 0
-	*cr.User = constants.DefaultUserName
+	*cr.User = constants.DefaultClientName
 	return cr
 }
 

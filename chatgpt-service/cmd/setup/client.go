@@ -39,7 +39,7 @@ func NewOpenAIClient(cfg *config.GlobalConfig, options ...client.ClientOption) (
 		BaseURL:       constants.DefaultBaseURL,
 		HttpClient:    httpClient,
 		DefaultEngine: constants.DefaultEngine,
-		IdOrg:         constants.DefaultUserName,
+		IdOrg:         constants.DefaultClientName,
 	}
 	for _, clientOption := range options {
 		err := clientOption(cl)

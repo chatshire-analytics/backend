@@ -3,7 +3,6 @@ package api
 import (
 	"chatgpt-service/internal/config"
 	"chatgpt-service/internal/pkg/client"
-	"chatgpt-service/internal/pkg/engine"
 	"chatgpt-service/internal/pkg/store"
 	cif "chatgpt-service/pkg/client"
 	"fmt"
@@ -40,6 +39,22 @@ func (hd *Handler) ListModels(_ echo.Context) error {
 
 func (hd *Handler) RetrieveModel(_ echo.Context) error {
 	res, err := hd.oc.RetrieveModel((*hd.ectx).Request().Context(), (*hd.ectx).Param(cif.ModelIdParamKey))
+	if err != nil {
+		return err
+	}
+	return (*hd.ectx).JSON(200, res)
+}
+
+func (hd *Handler) CreateChatCompletion(_ echo.Context) error {
+	var cr cif.ChatCompletionRequest
+	if err := (*hd.ectx).Bind(&cr); err != nil {
+		return err
+	}
+	res, err := hd.oc.CreateNewChatCompletion((*hd.ectx).Request().Context(), cr)
+	if err != nil {
+		return err
+	}
+	err = hd.db.StoreGptSqlResult(cr, res)
 	if err != nil {
 		return err
 	}
@@ -138,7 +153,7 @@ func (hd *Handler) RunGptPythonClient(_ echo.Context) error {
 		return err
 	}
 	// TODO: temporarily
-	prompt, err := engine.CreatePrompt(promptRaw)
+	prompt, err := cif.CreatePrompt(promptRaw)
 	if err != nil {
 		return err
 	}

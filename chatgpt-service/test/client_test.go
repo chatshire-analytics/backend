@@ -363,7 +363,7 @@ func TestFlipsideCryptoGetQueryRunningResult(t *testing.T) {
 //	//	t.Fatal(err)
 //	//}
 
-func TestIntegration_1(t *testing.T) {
+func TestIntegration_1_ReversedPython(t *testing.T) {
 	// STAGE 1. GPT
 	//schemaRaw, err := engine.CreatePrompt("Find the most expensive gas fees-cost transaction in last 7 days.")
 	bodyInPrompt := client.GPTPromptRequest{
@@ -435,7 +435,7 @@ func TestIntegration_1(t *testing.T) {
 	fmt.Println("queryResponse", queryResponse)
 }
 
-func TestEndToEnd_1(t *testing.T) {
+func TestEndToEnd_1_ReversedPython(t *testing.T) {
 	bodyInPrompt := client.GPTPromptRequest{
 		Prompt: "Find the most expensive gas fees-cost transaction in last 7 days.",
 	}
@@ -464,7 +464,7 @@ func TestEndToEnd_1(t *testing.T) {
 	}
 
 	bodyTest := &client.CreateFlipsideQueryRequest{
-		Id:         gptQueryResponse.Id,
+		Id:         string(rune(gptQueryResponse.Id)),
 		Sql:        gptQueryResponse.Result,
 		TtlMinutes: 15,
 		Cache:      true,
@@ -538,7 +538,7 @@ func TestEndToEnd_1(t *testing.T) {
 	fmt.Println("queryTokenResponse", queryTokenResponse)
 }
 
-func TestEndToEnd_2(t *testing.T) {
+func TestEndToEnd_2_ReversedPython(t *testing.T) {
 	bodyInPrompt := client.GPTPromptRequest{
 		Prompt: "Find the transaction hash with the largest amount of ETH sent in the last 7 days.",
 	}
@@ -567,7 +567,7 @@ func TestEndToEnd_2(t *testing.T) {
 	}
 
 	bodyTest := &client.CreateFlipsideQueryRequest{
-		Id:         gptQueryResponse.Id,
+		Id:         string(rune(gptQueryResponse.Id)),
 		Sql:        gptQueryResponse.Result,
 		TtlMinutes: 15,
 		Cache:      true,
@@ -607,6 +607,110 @@ func TestEndToEnd_2(t *testing.T) {
 	if err = json.Unmarshal(bodyVerify.Bytes(), &queryResponse); err != nil {
 		t.Fatalf("could not unmarshal response: %v", err)
 	}
+
+	paramTest := &client.GetFlipsideQueryResultRequest{
+		Token: queryResponse.Token,
+	}
+
+	fmt.Println("found token ::: ", queryResponse.Token)
+
+	// rest 60 seconds for waiting query result
+	time.Sleep(60 * time.Second)
+
+	err_token, ectx_token, hd_token := setupTest(t, http.MethodGet, cpkg.GetFlipsideQueryResultEndpoint, nil, &paramTest.Token)
+	if err_token != nil {
+		t.Fatalf("could not create handler: %v", err)
+	}
+
+	err_token = hd_token.GetFlipsideQueryResult(ectx_token)
+	if err != nil {
+		t.Fatalf("could not get query result: %v", err)
+	}
+
+	resToken := ectx_token.Response()
+	if resToken.Status != http.StatusOK {
+		t.Fatalf("expected status OK but got %v", resToken.Status)
+	}
+
+	bodyTokenVerify := resToken.Writer.(*httptest.ResponseRecorder).Body
+	var queryTokenResponse client.GetFlipsideQueryResultSuccessResponse
+	if err = json.Unmarshal(bodyTokenVerify.Bytes(), &queryTokenResponse); err != nil {
+		t.Fatalf("could not unmarshal response: %v", err)
+	}
+
+	fmt.Println("queryTokenResponse", queryTokenResponse)
+}
+
+// INTEGRATION TEST USING OFFICIAL API FOR GPT 3.5 MODEL
+func TestIntegration_1_OfficialClient(t *testing.T) {
+	// STAGE 1. GPT
+	//schemaRaw, err := engine.CreatePrompt("Find the most expensive gas fees-cost transaction in last 7 days.")
+	bodyTest, err := client.NewChatCompletionRequest("Find the most expensive gas fees-cost transaction in last 7 days.", 3000, nil, nil, nil)
+	if err != nil {
+		t.Errorf("could not marshal request body: %v", err)
+	}
+	bodyRaw, err := json.Marshal(bodyTest)
+	if err != nil {
+		t.Errorf("could not marshal request body: %v", err)
+	}
+	err_gpt, ectx_gpt, hd_gpt := setupTest(t, http.MethodGet, cpkg.GPTGenerateQueryEndpoint, &bodyRaw, nil)
+	if err_gpt != nil {
+		t.Fatalf("could not create handler: %v", err_gpt)
+	}
+	errGpt2 := hd_gpt.CreateChatCompletion(ectx_gpt)
+	if errGpt2 != nil {
+		t.Fatalf("could not create query: %v", errGpt2)
+	}
+	res_gpt := ectx_gpt.Response()
+	if res_gpt.Status != http.StatusOK {
+		t.Fatalf("expected status OK but got %v", res_gpt.Status)
+	}
+	bodyverifyGpt := res_gpt.Writer.(*httptest.ResponseRecorder).Body
+	var gptQueryResponse client.ChatCompletionResponse
+	if err_gpt = json.Unmarshal(bodyverifyGpt.Bytes(), &gptQueryResponse); err_gpt != nil {
+		t.Fatalf("could not unmarshal response: %v", err_gpt)
+	}
+
+	bodyTestCfqp := &client.CreateFlipsideQueryRequest{
+		Id:         gptQueryResponse.Id,
+		Sql:        gptQueryResponse.GetContent(),
+		TtlMinutes: 15,
+		Cache:      true,
+		Params: struct {
+			AdditionalProp1 string `json:"additionalProp1"`
+			AdditionalProp2 string `json:"additionalProp2"`
+			AdditionalProp3 string `json:"additionalProp3"`
+		}{
+			AdditionalProp1: "string",
+			AdditionalProp2: "string",
+			AdditionalProp3: "string",
+		},
+	}
+
+	bodyRawCfqp, err := json.Marshal(bodyTestCfqp)
+	if err != nil {
+		t.Errorf("could not marshal request body: %v", err)
+	}
+
+	err, ectx, hd := setupTest(t, http.MethodGet, cpkg.GetFlipsideQueryResultEndpoint, &bodyRawCfqp, nil)
+	if err != nil {
+		t.Fatalf("could not create handler: %v", err)
+	}
+	err = hd.CreateFlipsideQuery(ectx)
+	if err != nil {
+		t.Fatalf("could not create query: %v", err)
+	}
+	res := ectx.Response()
+	if res.Status != http.StatusOK {
+		t.Fatalf("expected status OK but got %v", res.Status)
+	}
+	bodyVerify := res.Writer.(*httptest.ResponseRecorder).Body
+	var queryResponse client.CreateFlipsideQuerySuccessResponse
+	if err = json.Unmarshal(bodyVerify.Bytes(), &queryResponse); err != nil {
+		t.Fatalf("could not unmarshal response: %v", err)
+	}
+
+	fmt.Println("queryResponse", queryResponse)
 
 	paramTest := &client.GetFlipsideQueryResultRequest{
 		Token: queryResponse.Token,
