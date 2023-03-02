@@ -2,6 +2,13 @@ package constants
 
 import "fmt"
 
+// GPT 3.5 model
+const (
+	Gpt35EngineTurbo     = "gpt-3.5-turbo"
+	Gpt35EngineTurbo0301 = "gpt-3.5-turbo-0301"
+	TextDavinci003Engine = "text-davinci-003"
+)
+
 // Engine Types
 const (
 	TextAda001Engine     = "text-ada-001"
@@ -9,14 +16,17 @@ const (
 	TextCurie001Engine   = "text-curie-001"
 	TextDavinci001Engine = "text-davinci-001"
 	TextDavinci002Engine = "text-davinci-002"
-	TextDavinci003Engine = "text-davinci-003"
 	AdaEngine            = "ada"
 	BabbageEngine        = "babbage"
 	CurieEngine          = "curie"
 	DavinciEngine        = "davinci"
-	DefaultEngine        = TextDavinci003Engine
-	// DefaultUserName TODO: load UserName to environment variable
-	DefaultUserName = "mentat-analysis"
+)
+
+const (
+	DefaultEngine   = Gpt35EngineTurbo
+	DefaultRoleName = "User"
+	// DefaultClientName TODO: load UserName to environment variable
+	DefaultClientName = "mentat-analysis"
 )
 
 type EmbeddingEngine string

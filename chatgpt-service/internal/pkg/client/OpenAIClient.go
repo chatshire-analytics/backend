@@ -34,11 +34,24 @@ func (oc *OpenAIClient) JSONBodyReader(body interface{}) (io.Reader, error) {
 	if body == nil {
 		return bytes.NewBuffer(nil), nil
 	}
+
 	raw, err := json.Marshal(body)
 	if err != nil {
 		return nil, errors.New("failed to encode body: " + err.Error())
 	}
-	return bytes.NewBuffer(raw), nil
+
+	// Remove `OriginalPrompt` field if it exists
+	var objMap map[string]interface{}
+	if err := json.Unmarshal(raw, &objMap); err != nil {
+		return nil, errors.New("failed to decode body: " + err.Error())
+	}
+	delete(objMap, "original_prompt")
+	filteredRaw, err := json.Marshal(objMap)
+	if err != nil {
+		return nil, errors.New("failed to re-encode body: " + err.Error())
+	}
+
+	return bytes.NewBuffer(filteredRaw), nil
 }
 
 func (oc *OpenAIClient) NewRequestBuilder(ctx context.Context, method string, path string, payload interface{}) (*http.Request, error) {
@@ -135,6 +148,22 @@ func (oc OpenAIClient) RetrieveModel(ctx context.Context, engine string) (*clien
 	return output, nil
 }
 
+func (oc OpenAIClient) CreateNewChatCompletion(ctx context.Context, request client.ChatCompletionRequest) (*client.ChatCompletionResponse, error) {
+	req, err := oc.NewRequestBuilder(ctx, http.MethodPost, client.OpenAIChatCompletionEndPoint, request)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := oc.ExecuteRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	output := new(client.ChatCompletionResponse)
+	if err := oc.getResponseObject(resp, output); err != nil {
+		return nil, err
+	}
+	return output, nil
+}
+
 func (oc OpenAIClient) CreateCompletion(ctx context.Context, request client.CompletionRequest) (*client.CompletionResponse, error) {
 	return oc.CreateCompletionWithEngine(ctx, oc.DefaultEngine, request)
 }
@@ -143,7 +172,7 @@ func (oc OpenAIClient) CompletionStream(ctx context.Context, request client.Comp
 	return oc.CompletionStreamWithEngine(ctx, oc.DefaultEngine, request, onData)
 }
 
-func (oc OpenAIClient) CreateCompletionWithEngine(ctx context.Context, engine string, request client.CompletionRequest) (*client.CompletionResponse, error) {
+func (oc OpenAIClient) CreateCompletionWithEngine(ctx context.Context, _ string, request client.CompletionRequest) (*client.CompletionResponse, error) {
 	req, err := oc.NewRequestBuilder(ctx, http.MethodPost, client.OpenAICompletionEndPoint, request)
 	if err != nil {
 		return nil, err

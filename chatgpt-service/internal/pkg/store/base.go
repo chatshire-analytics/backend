@@ -35,10 +35,23 @@ func (db *Database) StoreGptPythonSqlResult(sentence string, sql string) (int, e
 	return lastInsertId, nil
 }
 
-func (db *Database) UpdateCreateFlipsideQueryResult(id int, token string) error {
+func (db *Database) StoreGptSqlResult(cr client.ChatCompletionRequest, res *client.ChatCompletionResponse) error {
+	query := "INSERT INTO flipside_query_result (query, sentence, gpt_id, address) VALUES (?, ?, ?, ?)"
+	// TODO: refactor this
+	address := "0x0000000000000000000000000000000000000000"
+
+	_, err := db.Exec(query, res.GetContent(), cr.OriginalPrompt, res.Id, address)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) UpdateCreateFlipsideQueryResult(id string, token string) error {
 	// TODO: change to enum
 	status := "PENDING"
-	query := "UPDATE flipside_query_result SET status = ?, token = ? WHERE id = ?"
+	query := "UPDATE flipside_query_result SET status = ?, token = ? WHERE gpt_id = ?"
 	_, err := db.Exec(query, status, token, id)
 	if err != nil {
 		return err

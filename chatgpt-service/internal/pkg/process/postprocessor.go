@@ -3,6 +3,7 @@ package process
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 func TwoDimensionalInterfacesToJSONByte(interfaces [][]interface{}) (string, error) {
@@ -24,4 +25,8 @@ func TwoDimensionalInterfacesToJSONByte(interfaces [][]interface{}) (string, err
 	}
 
 	return string(resultJSON), nil
+}
+
+func ConvertNewLineToSpace(input string) string {
+	return strings.ReplaceAll(input, "\n", " ")
 }
