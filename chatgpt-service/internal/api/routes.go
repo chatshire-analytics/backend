@@ -18,6 +18,7 @@ func SetupRoutes(e *echo.Echo, cfg config.GlobalConfig, oc gclient.OpenAIClient,
 	e.GET(client.GetAllModels, hd.ListModels)
 	e.GET(client.RetrieveModels, hd.RetrieveModel)
 	e.POST(client.CreateCompletionEndpoint, hd.CreateCompletion)
+	e.GET("/web", hd.TempHTMLHandler)
 	e.POST(gclient.GPTGenerateQueryEndpoint, hd.TempRequestNewQuery)
 	e.POST(gclient.CreateFlipsideQueryEndpoint, hd.CreateFlipsideQuery)
 	e.GET(gclient.GetFlipsideQueryResultEndpoint, hd.GetFlipsideQueryResult)
