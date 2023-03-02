@@ -1,10 +1,10 @@
 package client
 
 type GPTPromptRequest struct {
-	Prompt string
+	Prompt string `json:"prompt"`
 }
 
 type GPTPromptSuccessfulResponse struct {
-	Id     int
-	Result string
+	Id     int    `json:"id"`
+	Result string `json:"result"`
 }

@@ -61,16 +61,16 @@ func (db *Database) UpdateCreateFlipsideQueryResult(id string, token string) err
 
 func (db *Database) StoreGetFlipsideQueryResult(request client.GetFlipsideQueryResultRequest, response client.GetFlipsideQueryResultSuccessResponse) error {
 	status := "SUCCEEDED"
-	query := "UPDATE flipside_query_result SET results = ?, status = ? WHERE token = ?"
+	query := "UPDATE flipside_query_result SET results = ?, status = ?, ended_at = ? WHERE token = ?"
 
 	token := request.Token
 
-	processedResults, err := process.TwoDimensionalInterfacesToJSONByte(response.Results)
+	processedResults, err := process.TwoDimensionalInterfacesToJSONString(response.Results)
 	if err != nil {
 		return err
 	}
 
-	_, err = db.Exec(query, processedResults, status, token)
+	_, err = db.Exec(query, processedResults, status, response.EndedAt, token)
 	if err != nil {
 		return err
 	}

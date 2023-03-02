@@ -14,7 +14,7 @@ type Health struct {
 
 func HealthCheck(c echo.Context) error {
 	return c.JSON(http.StatusOK, Health{
-		Name:        "Mentat Backend",
-		Description: "Mentat Backend API",
+		Name:        "Chatshire EthDenver Backend",
+		Description: "Chatshire Backend API for EthDenver Hackathon PoC Stage",
 	})
 }

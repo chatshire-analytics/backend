@@ -671,22 +671,7 @@ func TestIntegration_1_OfficialClient(t *testing.T) {
 		t.Fatalf("could not unmarshal response: %v", err_gpt)
 	}
 
-	bodyTestCfqp := &client.CreateFlipsideQueryRequest{
-		Id:         gptQueryResponse.Id,
-		Sql:        gptQueryResponse.GetContent(),
-		TtlMinutes: 15,
-		Cache:      true,
-		Params: struct {
-			AdditionalProp1 string `json:"additionalProp1"`
-			AdditionalProp2 string `json:"additionalProp2"`
-			AdditionalProp3 string `json:"additionalProp3"`
-		}{
-			AdditionalProp1: "string",
-			AdditionalProp2: "string",
-			AdditionalProp3: "string",
-		},
-	}
-
+	bodyTestCfqp := client.NewCreateFlipsideQueryResult(gptQueryResponse.Id, gptQueryResponse.GetContent())
 	bodyRawCfqp, err := json.Marshal(bodyTestCfqp)
 	if err != nil {
 		t.Errorf("could not marshal request body: %v", err)

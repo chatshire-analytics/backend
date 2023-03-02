@@ -14,6 +14,15 @@ type CreateFlipsideQueryRequest struct {
 	} `json:"params"`
 }
 
+func NewCreateFlipsideQueryResult(id string, sql string) *CreateFlipsideQueryRequest {
+	return &CreateFlipsideQueryRequest{
+		Id:         id,
+		Sql:        sql,
+		TtlMinutes: 15,
+		Cache:      true,
+	}
+}
+
 type CreateFlipsideQuerySuccessResponse struct {
 	Token  string `json:"token"`
 	Cached bool   `json:"cached"`
@@ -39,4 +48,10 @@ type GetFlipsideQueryResultSuccessResponse struct {
 
 type GetFlipsideQueryResultRequest struct {
 	Token string `json:"token"`
+}
+
+func NewGetFlipsideQueryResultRequest(token string) *GetFlipsideQueryResultRequest {
+	return &GetFlipsideQueryResultRequest{
+		Token: token,
+	}
 }

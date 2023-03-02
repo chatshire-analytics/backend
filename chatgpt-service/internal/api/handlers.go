@@ -13,8 +13,9 @@ import (
 )
 
 type Handler struct {
-	oc   *client.OpenAIClient
-	fc   *client.FlipsideClient
+	oc *client.OpenAIClient
+	fc *client.FlipsideClient
+	// TODO: remove echo.Context to have different context for each request
 	ectx *echo.Context
 	// TODO: remove handler - database mapping connection
 	db *store.Database
@@ -45,18 +46,76 @@ func (hd *Handler) RetrieveModel(_ echo.Context) error {
 	return (*hd.ectx).JSON(200, res)
 }
 
+func (hd *Handler) TempRequestNewQuery(c echo.Context) error {
+	var request cif.GPTPromptRequest
+	if err := c.Bind(&request); err != nil {
+		return c.JSON(400, err.Error())
+	}
+	cr, err := cif.NewChatCompletionRequest(request.Prompt, 3000, nil, nil, nil)
+	if err != nil {
+		return (*hd.ectx).JSON(400, err.Error())
+	}
+	crResult, err := hd.oc.CreateNewChatCompletion(c.Request().Context(), *cr)
+	if err != nil {
+		return (*hd.ectx).JSON(503, err.Error())
+	}
+	err = hd.db.StoreGptSqlResult(*cr, crResult)
+	if err != nil {
+		return (*hd.ectx).JSON(500, err.Error())
+	}
+	cq := cif.NewCreateFlipsideQueryResult(crResult.Id, crResult.GetContent())
+	if err != nil {
+		return (*hd.ectx).JSON(500, err.Error())
+	}
+	res, err := hd.fc.CreateFlipsideQuery(c.Request().Context(), *cq)
+	resBody := make(map[string]string)
+	if err != nil {
+		// TODO: temporarily return the error message as the response body
+		resBody["status"] = err.Error()
+		return (*hd.ectx).JSON(http.StatusBadRequest, resBody)
+	}
+	err = hd.db.UpdateCreateFlipsideQueryResult(cq.Id, res.Token)
+	if err != nil {
+		resBody["status"] = err.Error()
+		fmt.Println(err.Error())
+		return (*hd.ectx).JSON(http.StatusServiceUnavailable, resBody)
+	}
+	fqr := cif.NewGetFlipsideQueryResultRequest(res.Token)
+	result, err := hd.fc.GetFlipsideQueryResult(c.Request().Context(), *fqr)
+	ulResBody := make(map[string]interface{})
+	if err != nil {
+		if strings.Contains(err.Error(), "running") {
+			ulResBody["token"] = res.Token
+			ulResBody["status"] = "running! if it takes too long, submit new query"
+			return c.JSON(http.StatusAccepted, ulResBody)
+		}
+		return err
+	}
+	err = hd.db.StoreGetFlipsideQueryResult(*fqr, *result)
+	if err != nil || result == nil {
+		resBody["status"] = err.Error()
+		fmt.Println(err.Error())
+		return c.JSON(http.StatusServiceUnavailable, resBody)
+	}
+	ulResBody["results"] = result.Results
+	ulResBody["query"] = crResult.GetContent()
+	ulResBody["status"] = "success"
+
+	return c.JSON(http.StatusOK, ulResBody)
+}
+
 func (hd *Handler) CreateChatCompletion(_ echo.Context) error {
 	var cr cif.ChatCompletionRequest
 	if err := (*hd.ectx).Bind(&cr); err != nil {
-		return err
+		return (*hd.ectx).JSON(400, err.Error())
 	}
 	res, err := hd.oc.CreateNewChatCompletion((*hd.ectx).Request().Context(), cr)
 	if err != nil {
-		return err
+		return (*hd.ectx).JSON(503, err.Error())
 	}
 	err = hd.db.StoreGptSqlResult(cr, res)
 	if err != nil {
-		return err
+		return (*hd.ectx).JSON(500, err.Error())
 	}
 	return (*hd.ectx).JSON(200, res)
 }
@@ -150,7 +209,7 @@ func (hd *Handler) RunGptPythonClient(_ echo.Context) error {
 
 	var promptRaw cif.GPTPromptRequest
 	if err := (*hd.ectx).Bind(&promptRaw); err != nil {
-		return err
+		return (*hd.ectx).JSON(400, err.Error())
 	}
 	// TODO: temporarily
 	prompt, err := cif.CreatePrompt(promptRaw)
@@ -161,8 +220,7 @@ func (hd *Handler) RunGptPythonClient(_ echo.Context) error {
 
 	result, err := exec.Command("python", "../pkg/client/ChatbotRunner.py", accessToken, promptInString).Output()
 	if err != nil {
-		fmt.Println(err.Error())
-		return err
+		return (*hd.ectx).JSON(500, err.Error())
 	}
 
 	id, err := hd.db.StoreGptPythonSqlResult(promptRaw.Prompt, string(result))
