@@ -19,7 +19,7 @@ func NewCreateFlipsideQueryResult(id string, sql string) *CreateFlipsideQueryReq
 		Id:         id,
 		Sql:        sql,
 		TtlMinutes: 15,
-		Cache:      true,
+		Cache:      false,
 	}
 }
 

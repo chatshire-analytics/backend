@@ -7,9 +7,11 @@ import (
 	cif "chatgpt-service/pkg/client"
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"html/template"
 	"net/http"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 type Handler struct {
@@ -80,6 +82,10 @@ func (hd *Handler) TempRequestNewQuery(c echo.Context) error {
 		fmt.Println(err.Error())
 		return (*hd.ectx).JSON(http.StatusServiceUnavailable, resBody)
 	}
+
+	// rest for 5 seconds
+	time.Sleep(5 * time.Second)
+
 	fqr := cif.NewGetFlipsideQueryResultRequest(res.Token)
 	result, err := hd.fc.GetFlipsideQueryResult(c.Request().Context(), *fqr)
 	ulResBody := make(map[string]interface{})
@@ -102,6 +108,21 @@ func (hd *Handler) TempRequestNewQuery(c echo.Context) error {
 	ulResBody["status"] = "success"
 
 	return c.JSON(http.StatusOK, ulResBody)
+}
+
+func (hd *Handler) TempHTMLHandler(c echo.Context) error {
+	data := struct {
+		Title string
+	}{
+		Title: "Chatshire Beta - On-Chain Data Analytics Tool Using GPT Model",
+	}
+
+	tmpl, err := template.ParseFiles("./template/index.html")
+	if err != nil {
+		return c.JSON(500, err.Error())
+	}
+
+	return tmpl.Execute(c.Response(), data)
 }
 
 func (hd *Handler) CreateChatCompletion(_ echo.Context) error {
