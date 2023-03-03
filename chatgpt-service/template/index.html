@@ -179,7 +179,7 @@
 
         const query = {"prompt": document.getElementById("query").value};
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://localhost:8080/gpt/generate", true);
+        xhr.open("POST", "http://49.50.175.241:8080/gpt/generate", true);
         xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
         xhr.onreadystatechange = function() {
             if (xhr.readyState === XMLHttpRequest.DONE) {
