@@ -140,7 +140,7 @@
 <div id="container">
     <h1>Chatshire For ETHDenver</h1>
     <h2>On-chain data analysis without writing SQL query. Just enjoy the magic powered by GPT3.5</h2>
-    <form action="http://localhost:8080/gpt/generate" method="post" onsubmit="sendQuery(); return false;">
+    <form action="http://49.50.175.241:8080/gpt/generate" method="post" onsubmit="sendQuery(); return false;">
         <label for="query">Cast your spell:</label>
         <input type="text" id="query" name="Prompt" size="150">
         <button type="submit">Confirm</button>
@@ -179,7 +179,7 @@
 
         const query = {"prompt": document.getElementById("query").value};
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://localhost:8080/gpt/generate", true);
+        xhr.open("POST", "http://49.50.175.241:8080/gpt/generate", true);
         xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
         xhr.onreadystatechange = function() {
             if (xhr.readyState === XMLHttpRequest.DONE) {
