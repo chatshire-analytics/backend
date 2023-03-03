@@ -83,8 +83,8 @@ func (hd *Handler) TempRequestNewQuery(c echo.Context) error {
 		return (*hd.ectx).JSON(http.StatusServiceUnavailable, resBody)
 	}
 
-	// rest for 5 seconds
-	time.Sleep(5 * time.Second)
+	// rest for 15 seconds
+	time.Sleep(15 * time.Second)
 
 	fqr := cif.NewGetFlipsideQueryResultRequest(res.Token)
 	result, err := hd.fc.GetFlipsideQueryResult(c.Request().Context(), *fqr)
